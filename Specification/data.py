@@ -25,6 +25,10 @@ class PreProcessing:
 		return ""
 
 	def tokenize_data(self, message):
+		"""
+		:param message: sentence, 2D array
+		:return: tokenize data
+		"""
 		message_len = len(message)
 
 		tokenize_data = [0 for _ in range(message_len)]
@@ -41,7 +45,7 @@ class PreProcessing:
 
 	def prepro_noise_canceling(self, message):
 		"""
-		:param message: sentence
+		:param message: sentence, 2D array
 		:return: noise canceling message
 		"""
 
