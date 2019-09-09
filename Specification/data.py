@@ -24,32 +24,40 @@ class PreProcessing:
 	def enc_processing(self):
 		return ""
 
-	def tokenizing_data(self):
-		return ""
+	def tokenize_data(self, message):
+		message_len = len(message)
 
-	def prepro_noise_canceling(self, question_train, question_test, answer_train, answer_test):
+		tokenize_data = [0 for _ in range(message_len)]
+
+		if message_len == 1:
+			tokenize_data[0] = message[0].split()
+		elif message_len == 0:
+			print("Check message")
+		else:
+			for idx in range(message_len):
+				tokenize_data[idx] = message[idx][0].split()
+
+		return tokenize_data
+
+	def prepro_noise_canceling(self, message):
 		"""
-		:param question_train: train question data
-		:param question_test: test question data
-		:param answer_train: train answer data
-		:param answer_test: test answer data
-		:return: noise canceling each train and test data
+		:param message: sentence
+		:return: noise canceling message
 		"""
 
 		remove_characters = "[~.,!?\"':;)(]"
 
-		train_len = len(question_train)
-		test_len = len(question_test)
+		message_len = len(message)
 
-		for idx in range(train_len):
-			question_train[idx] = re.sub(remove_characters, "", question_train[idx][0])
-			answer_train[idx] = re.sub(remove_characters, "", answer_train[idx][0])
+		if message_len == 1:
+			message[0] = re.sub(remove_characters, "", message[0][0])
+		elif message_len == 0:
+			print("Check message")
+		else:
+			for idx in range(message_len):
+				message[idx] = re.sub(remove_characters, "", message[idx][0])
 
-		for idx in range(test_len):
-			question_test[idx] = re.sub(remove_characters, "", question_test[idx][0])
-			answer_test[idx] = re.sub(remove_characters, "", answer_test[idx][0])
-
-		return question_train, question_test, answer_train, answer_test
+		return message
 
 	def load_data(self):
 		"""
