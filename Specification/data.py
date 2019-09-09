@@ -1,4 +1,5 @@
 import pandas as pd
+import re
 from sklearn.model_selection import train_test_split
 
 
@@ -28,8 +29,16 @@ class PreProcessing:
 	def tokenizing_data(self):
 		return ""
 
-	def prepro_noise_canceling(self):
-		return ""
+	def prepro_noise_canceling(self, data):
+		# result_data
+		result = []
+
+		# text normalization
+		for idx in range(len(data)):
+			result.append(re.sub("[~.,!?\"':;)(]",'',str(data[idx])))
+
+		return result
+
 
 	def load_data(self):
 		# Get data
@@ -38,7 +47,7 @@ class PreProcessing:
 		question = data_frame[:, [0]]
 		answer = data_frame[:, [1]]
 
-		# split data
+		# split data using scikit-learn
 		train_q, train_a, test_q, test_a = train_test_split(question, answer, test_size=0.33)
 
 		return train_q, train_a, test_q, test_a
@@ -46,7 +55,9 @@ class PreProcessing:
 
 def main():
 	data = PreProcessing()
-	data.load_data()
+	train_q, train_a, test_q, test_a = data.load_data()
+	data.prepro_noise_canceling(test_a)
+
 
 if __name__ == '__main__':
     main()
