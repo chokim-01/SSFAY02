@@ -1,5 +1,5 @@
 from data import PreProcessing
-
+#import tensorflow as tf
 
 def main():
 
@@ -10,9 +10,22 @@ def main():
     question_train, question_test, answer_train, answer_test = pre_processing.load_data()
 
     # Remove special character
-    remove_noise_question_train, remove_noise_question_test, remove_noise_answer_train, remove_noise_answer_test\
-        = pre_processing.prepro_noise_canceling(question_train, question_test, answer_train, answer_test)
+    noise_cancel_question_train = pre_processing.prepro_noise_canceling(question_train)
+    noise_cancel_question_test = pre_processing.prepro_noise_canceling(question_test)
+    noise_cancel_answer_train = pre_processing.prepro_noise_canceling(answer_train)
+    noise_cancel_answer_test = pre_processing.prepro_noise_canceling(answer_test)
+
+    # Tokenize data
+    tokenize_question_train = pre_processing.tokenize_data(noise_cancel_question_train)
+    tokenize_question_test = pre_processing.tokenize_data(noise_cancel_question_test)
+    tokenize_answer_train = pre_processing.tokenize_data(noise_cancel_answer_train)
+    tokenize_answer_test = pre_processing.tokenize_data(noise_cancel_answer_test)
+
+
+
 
 
 if __name__ == '__main__':
+    #tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.INFO)
+    #tf.compat.v1.app.run(main)
     main()
