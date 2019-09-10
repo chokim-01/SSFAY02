@@ -14,9 +14,11 @@ def main():
 
     # Load voca_dictionary
     voca_dictionary = pre_processing.load_voc()
-    print(voca_dictionary)
 
 
+    # Encoding
+    index, lens = pre_processing.enc_processing([["안녕하세요. 반갑습니다!"], ["좋은하루 입니다!"]], voca_dictionary)
+    print(index, lens)
 
 
 if __name__ == '__main__':
