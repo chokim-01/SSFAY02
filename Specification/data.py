@@ -74,13 +74,13 @@ class PreProcessing:
 
 	def make_voc(self, voc_list):
 
-		char_to_idx = []
-		idx_to_char = []
+		char_to_idx = {}
+		idx_to_char = {}
 
 		for idx in range(len(voc_list)):
 			word = voc_list[idx]
-			char_to_idx.append([word, idx])
-			idx_to_char.append([idx, word])
+			char_to_idx[word] = idx
+			idx_to_char[idx] = word
 
 		return char_to_idx, idx_to_char
 
