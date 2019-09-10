@@ -20,10 +20,12 @@ class PreProcessing:
 		return ""
 
 	def load_voc(self):
-		return ""
+		with open('./Data/voca_dictionary.dat', 'rb') as file:
+			return pickle.load(file)
 
 	def make_voc(self):
-		voca_dictionary = {"<PAD>": 0, "<SOS>": 1, "<END>": 2, "<UNK>": 3}
+		voca_dictionary = {self.PAD: self.PAD_INDEX, self.STD: self.STD_INDEX,
+							self.END: self.END_INDEX, self.UNK: self.UNK_INDEX}
 
 		idx = 4
 		for sentence in self.question_and_answer:
