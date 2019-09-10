@@ -69,11 +69,11 @@ class PreProcessing:
 		# create dictionary
 		char_to_idx, idx_to_char = self.make_voc(voc_list)
 
-		return char_to_idx, idx_to_char
+		return char_to_idx, idx_to_char, len(voc_list)
 
 
 	def make_voc(self, voc_list):
-
+		
 		char_to_idx = {}
 		idx_to_char = {}
 
