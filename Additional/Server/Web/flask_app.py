@@ -10,7 +10,7 @@ import conn.conn as conn
 
 # Get file path
 ROOT_PATH = os.path.dirname(os.path.abspath(__file__))
-STATIC_PATH = os.path.join(ROOT_PATH + "\\..\\..\\front", 'dist')
+STATIC_PATH = os.path.join(ROOT_PATH + "\\..\\..\\front", 'test/dist')
 
 app = Flask(__name__, static_folder=STATIC_PATH, static_url_path='')
 
