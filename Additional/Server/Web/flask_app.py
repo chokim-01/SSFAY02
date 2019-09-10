@@ -159,17 +159,6 @@ def comment_del():
     return ""
 
 
-# Load data
-def load_data():
-    # Get data
-    train_data_frame = pd.read_csv("../../Data/ratings_train.txt", sep='\t').dropna()[["document", "label"]].values
-
-    # ndarray to list
-    # train_data_frame = train_data_frame.tolist()
-
-    return train_data_frame
-
-
 # Add News test case to DB
 def add_news(list_news):
     # Read test case
