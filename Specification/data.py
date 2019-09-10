@@ -1,4 +1,5 @@
 import re
+import pickle
 import pandas as pd
 
 
@@ -41,7 +42,7 @@ class PreProcessing:
 				voca_dictionary[token] = idx
 				idx += 1
 
-		return voca_dictionary
+		pickle.dump(voca_dictionary, open("./Data/voca_dictionary.dat", "wb"))
 
 	def dec_target_processing(self):
 		return ""
@@ -49,7 +50,7 @@ class PreProcessing:
 	def dec_output_processing(self):
 		return ""
 
-	def enc_processing(self, message, word_dictionary):
+	def enc_processing(self, message, voca_dictionary):
 
 		return ""
 
