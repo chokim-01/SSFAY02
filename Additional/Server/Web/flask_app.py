@@ -125,7 +125,7 @@ def comment_push():
 
 # Edit comment label naive
 @app.route("/api/edit/label", methods=["POST"])
-def label_naive_edit():
+def label_logistic_edit():
     db = conn.db()
     cursor = db.cursor()
 
@@ -170,26 +170,33 @@ def load_data():
     return train_data_frame
 
 
-# Add 150,000 case to DB
-def add_testcase():
+# Add News test case to DB
+def add_news(list_news):
     # Read test case
     db = conn.db()
     cursor = db.cursor()
 
-    test_data = load_data()
-    label = test_data[:, 1].tolist()
-    test_data = test_data.tolist()
-
-    # test_data = np.append(test_data, label)
-
-    for idx in range(len(test_data)):
-        test_data[idx].append(label[idx])
-
-    sql = "insert into comments(context, label) values (%s, %s, %s)"
-    cursor.executemany(sql, test_data)
+    sql = "insert into News (news_title, news_context) values()"
+    cursor.executemany(sql, list_news)
     db.commit()
 
+    add_comment()
+
     return ""
+
+
+# Add comment case to DB
+def add_comment(list_comment):
+    db = conn.db()
+    cursor = db.cursor()
+
+    for comment in list_comment:
+        comment.append(logistic_regression_model(comment[1]))
+        ''
+    sql = "insert into comments(news_num, context, label) values (%s, %s, %s)"
+
+    cursor.executemany(sql, list_comment)
+    db.commit()
 
 
 def main():
