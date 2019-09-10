@@ -26,18 +26,28 @@ class PreProcessing:
 	def enc_processing(self):
 		return ""
 
-	def tokenizing_data(self):
-		return ""
+	def tokenizing_data(self, text):
+		# tokenized data
+		tokenized_data = []
+
+		# text tokenization
+		for idx in range(len(text)):
+			str_split = text[idx].split()
+			for word in str_split:
+				tokenized_data.append(word)
+
+		return tokenized_data
+
 
 	def prepro_noise_canceling(self, data):
 		# result_data
-		result = []
+		noise_canceled_data = []
 
 		# text normalization
 		for idx in range(len(data)):
-			result.append(re.sub("[~.,!?\"':;)(]",'',str(data[idx])))
+			noise_canceled_data.append(re.sub("[~.,!?\"':;)(]",'',data[idx][0]))
 
-		return result
+		return noise_canceled_data
 
 
 	def load_data(self):
@@ -56,8 +66,9 @@ class PreProcessing:
 def main():
 	data = PreProcessing()
 	train_q, train_a, test_q, test_a = data.load_data()
-	data.prepro_noise_canceling(test_a)
-
+	noise_canceled = data.prepro_noise_canceling(test_a)
+	tokenized_data = data.tokenizing_data(noise_canceled)
+	print(tokenized_data)
 
 if __name__ == '__main__':
     main()
