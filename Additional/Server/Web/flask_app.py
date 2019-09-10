@@ -10,16 +10,16 @@ import conn.conn as conn
 
 # Get file path
 ROOT_PATH = os.path.dirname(os.path.abspath(__file__))
-STATIC_PATH = os.path.join(ROOT_PATH + "..\\..\\front", 'dist')
+STATIC_PATH = os.path.join(ROOT_PATH + "\\..\\..\\front", 'dist')
 
 app = Flask(__name__, static_folder=STATIC_PATH, static_url_path='')
 
 # Get ai model
 
-with open('./logistic_regression_model.clf', 'rb') as model:
+with open('../../Model/logistic_regression_model.clf', 'rb') as model:
     logistic_regression_model = pickle.load(model)
 
-with open('./word_indices.clf', 'rb') as model:
+with open('../../Model/word_indices.clf', 'rb') as model:
     word_indices = pickle.load(model)
 
 # Set CORS
@@ -37,20 +37,6 @@ def tokenize_data(data_row):
     okt = Okt()
 
     return ['/'.join(t) for t in okt.pos(data_row, norm=True, stem=True)]
-
-
-# Naive Bayes Model
-def load_naive_metion(mention):
-    global multinomial_nb_model, word_indices
-    mention_token_data = tokenize_data(mention)
-
-    x_mention = lil_matrix((1, len(word_indices) + 1), dtype=np.int64)
-    for token in mention_token_data:
-        word = token.split("/")[0]
-        if word in word_indices:
-            x_mention[0, word_indices[word]] = 1
-
-    return int(multinomial_nb_model.predict(x_mention)[0])
 
 
 # Logistic Regression Model
@@ -72,17 +58,6 @@ def load_logistic_metion(mention):
 @app.route("/")
 def main():
     return app.send_static_file("index.html")
-
-
-# Get comments
-@app.route("/api/get/comments", methods=["GET"])
-def get_comments():
-    cursor = conn.db().cursor()
-
-    cursor.execute("select * from comments order by num desc")
-    result = cursor.fetchall()
-
-    return jsonify(result)
 
 
 # Get comments Total Count
@@ -141,7 +116,7 @@ def comment_push():
 
     # calc label
     label = load_logistic_metion(context)
-    sql = "insert into comments(context, label) values(%s, %s, %s)"
+    sql = "insert into comments(context, label) values(%s, %s)"
     cursor.execute(sql, (context, label))
     db.commit()
 
@@ -210,7 +185,7 @@ def add_testcase():
     for idx in range(len(test_data)):
         test_data[idx].append(label[idx])
 
-    sql = "insert into comments(context, label_naive, label_logistic) values (%s, %s, %s)"
+    sql = "insert into comments(context, label) values (%s, %s, %s)"
     cursor.executemany(sql, test_data)
     db.commit()
 
