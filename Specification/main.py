@@ -10,7 +10,10 @@ def main():
     question_train, question_test, answer_train, answer_test = pre_processing.load_data()
 
     # Make voca_dictionary
-    voca_dictionary = pre_processing.make_voc()
+    pre_processing.make_voc()
+
+    # Load voca_dictionary
+    voca_dictionary = pre_processing.load_voc()
     print(voca_dictionary)
 
 
