@@ -2,7 +2,6 @@ from flask import Flask, jsonify, request
 from scipy.sparse import lil_matrix
 from flask_cors import CORS
 from konlpy.tag import Okt
-import pandas as pd
 import numpy as np
 import pickle
 import os
@@ -10,7 +9,7 @@ import conn.conn as conn
 
 # Get file path
 ROOT_PATH = os.path.dirname(os.path.abspath(__file__))
-STATIC_PATH = os.path.join(ROOT_PATH + "\\..\\..\\front", 'test/dist')
+STATIC_PATH = os.path.join(ROOT_PATH + "\\..\\..\\front", 'dist')
 
 app = Flask(__name__, static_folder=STATIC_PATH, static_url_path='')
 
@@ -40,7 +39,7 @@ def tokenize_data(data_row):
 
 
 # Logistic Regression Model
-def load_logistic_metion(mention):
+def load_logistic_mention(mention):
     global logistic_regression_model, word_indices
     mention_token_data = tokenize_data(mention)
 
@@ -115,7 +114,7 @@ def comment_push():
     context = request.form.get("context")
 
     # calc label
-    label = load_logistic_metion(context)
+    label = load_logistic_mention(context)
     sql = "insert into comments(context, label) values(%s, %s)"
     cursor.execute(sql, (context, label))
     db.commit()
@@ -159,48 +158,7 @@ def comment_del():
     return ""
 
 
-# Load data
-def load_data():
-    # Get data
-    train_data_frame = pd.read_csv("../../Data/ratings_train.txt", sep='\t').dropna()[["document", "label"]].values
-
-    # ndarray to list
-    # train_data_frame = train_data_frame.tolist()
-
-    return train_data_frame
-
-
-# Add News test case to DB
-def add_news(list_news):
-    # Read test case
-    db = conn.db()
-    cursor = db.cursor()
-
-    sql = "insert into News (news_title, news_context) values()"
-    cursor.executemany(sql, list_news)
-    db.commit()
-
-    add_comment()
-
-    return ""
-
-
-# Add comment case to DB
-def add_comment(list_comment):
-    db = conn.db()
-    cursor = db.cursor()
-
-    for comment in list_comment:
-        comment.append(logistic_regression_model(comment[1]))
-        ''
-    sql = "insert into comments(news_num, context, label) values (%s, %s, %s)"
-
-    cursor.executemany(sql, list_comment)
-    db.commit()
-
-
 def main():
-    # add_testcase()
     app.run(debug=True)
 
 
