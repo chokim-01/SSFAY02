@@ -86,16 +86,42 @@ class PreProcessing:
 		return char_to_idx, idx_to_char
 
 
-	def dec_target_processing(self):
+	def dec_target_processing(self, value, dictionary):
+		"""
+		seq_input_index : index data
+		seq_len : length of sentence
+		"""
+		seq_input_index = []
+		seq_len = []
 
-		return ""
+		value = self.prepro_noise_canceling(self.value)
+
+		for seq in value:
+			seq_index = []
+
+			# remove length over tokens
+			seq_index = [dictionary[word] for word in seq.split()]
+
+			# add end tokens
+			if len(seq_index) >= DEFINES.max_sequence_length:
+				seq_index = seq_index[:DEFINES.max_sequence_length - 1] + [dictionary[self.END]]
+			else:
+				seq_index += [dictionary[self.END]]
+
+			# if shorter than max_sequence_length add padding
+			seq_index += (DEFINES.max_sequence_length - len(seq_index)) * [dictionary[self.PAD]]
+
+			# append index value
+			seq_input_index.append(seq_index)
+
+		return np.asarray(seq_input_index)
+
 
 	def dec_input_processing(self, value, dictionary):
 		"""
 			seq_input_index : index data
 			seq_len : length of sentence
 		"""
-
 		seq_input_index = []
 		seq_len = []
 
@@ -137,7 +163,6 @@ class PreProcessing:
 		seq_input_index : index data
 		seq_len : length of sentence
 		"""
-
 		seq_input_index = []
 		seq_len = []
 
