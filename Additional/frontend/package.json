@@ -7,11 +7,15 @@
     "build": "vue-cli-service build"
   },
   "dependencies": {
+    "chart.js": "^2.8.0",
+    "font-awesome": "^4.7.0",
     "vue": "^2.6.10",
     "vue-router": "^3.0.3",
     "vuetify": "^1.5.0"
   },
   "devDependencies": {
+    "@fortawesome/fontawesome-free": "^5.10.2",
+    "@mdi/font": "^4.4.95",
     "@vue/cli-service": "^3.11.0",
     "node-sass": "^4.9.0",
     "sass-loader": "^7.1.0",
