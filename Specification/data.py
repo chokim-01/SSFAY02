@@ -1,15 +1,17 @@
 import re
 import pickle
 import pandas as pd
+import numpy as np
+
+from sklearn.model_selection import train_test_split
+from os.path import exists
 from config import DEFINES
 
 
 class PreProcessing:
 	def __init__(self):
-		self.train_percent = 0.8
-		self.question_and_answer = None
 		self.PAD = "<PAD>"
-		self.STD = "<SOS>"
+		self.STD = "<STD>"
 		self.END = "<END>"
 		self.UNK = "<UNK>"
 		self.PAD_INDEX = 0
@@ -21,50 +23,85 @@ class PreProcessing:
 		return ""
 
 	def load_voc(self):
-		with open('./Data/voca_dictionary.dat', 'rb') as file:
-			return pickle.load(file)
-
-	def make_voc(self):
 		"""
 
-		:return: None
+		:return: voca to idx, idx to voca, length of voca
 		"""
+		vocabulary = []
+		exist_check = False
 
-		# Set initialize dict
-		voca_dictionary = {self.PAD: self.PAD_INDEX, self.STD: self.STD_INDEX,
-							self.END: self.END_INDEX, self.UNK: self.UNK_INDEX}
+		# If exist vocabularyData.voc
+		if exists(DEFINES.vocabulary_path):
+			# Read vocabulary file
+			with open(DEFINES.vocabulary_path, "r", encoding="utf-8") as file:
+				# Remove space each line
+				for line in file:
+					vocabulary.append(line.strip())
+			exist_check = True
+		else:
+			# If exists data
+			if exists(DEFINES.data_path):
+				# Get chatbot data
+				data_frame = pd.read_csv(DEFINES.data_path)
 
-		# Insert voca and index
-		idx = 4
-		for sentence in self.question_and_answer:
+				# Get question and answer data
+				question_and_answer = data_frame[["Q", "A"]].values
 
-			# Remove special word
-			noise_cancel_sentence_0 = self.prepro_noise_canceling([sentence[0]])
-			noise_cancel_sentence_1 = self.prepro_noise_canceling([sentence[1]])
+				for sentence in question_and_answer:
 
-			# Tokenize sentence
-			tokenize_sentence_0 = self.tokenize_data(noise_cancel_sentence_0)
-			tokenize_sentence_1 = self.tokenize_data(noise_cancel_sentence_1)
+					# Remove special characters
+					noise_cancel_sentence_0 = self.prepro_noise_canceling([sentence[0]])
+					noise_cancel_sentence_1 = self.prepro_noise_canceling([sentence[1]])
 
-			# Insert token and index
-			for token in tokenize_sentence_0[0]:
-				voca_dictionary[token] = idx
-				idx += 1
+					# Tokenize sentence
+					tokenize_sentence_0 = self.tokenize_data(noise_cancel_sentence_0)
+					tokenize_sentence_1 = self.tokenize_data(noise_cancel_sentence_1)
 
-			for token in tokenize_sentence_1[0]:
-				voca_dictionary[token] = idx
-				idx += 1
+					# Make vocabulary dictionary
+					vocabulary += tokenize_sentence_0[0]
+					vocabulary += tokenize_sentence_1[0]
 
-		# Make voca_dictionary file
-		pickle.dump(voca_dictionary, open("./Data/voca_dictionary.dat", "wb"))
+				# Remove duplicate
+				vocabulary = list(set(vocabulary))
+				vocabulary[:0] = [self.PAD, self.STD, self.END, self.UNK]
 
-	def dec_target_processing(self):
+				# Save vocabulary
+				with open(DEFINES.vocabulary_path, "w", encoding="utf-8") as file:
+					for voca in vocabulary:
+						file.write(voca + "\n")
+
+				# Make char2idx, idx2char dict
+				if not exist_check:
+					with open(DEFINES.vocabulary_path, "r", encoding="utf-8") as file:
+						for line in file:
+							vocabulary.append(line.strip())
+			else:
+				print("Check data or path")
+
+		voca2idx, idx2voca = self.make_voc(vocabulary)
+
+		return voca2idx, idx2voca, len(voca2idx)
+
+	def make_voc(self, vocabulary):
+
+		voca2idx = {word: idx for idx, word in enumerate(vocabulary)}
+		idx2voca = {idx: word for idx, word in enumerate(vocabulary)}
+
+		return voca2idx, idx2voca
+
+	def dec_target_processing(self, message, voca_dictionary):
 		return ""
 
-	def dec_output_processing(self):
+	def dec_output_processing(self, message, voca_dictionary):
 		return ""
 
 	def enc_processing(self, message, voca_dictionary):
+		"""
+
+		:param message: noise_canceled and tokenized message
+		:param voca_dictionary: tokenize word and index
+		:return: message index as np.array and message length
+		"""
 
 		# Message index list
 		message_index = []
@@ -72,18 +109,11 @@ class PreProcessing:
 		# Message length list
 		message_len = []
 
-		noise_cancel_message = self.prepro_noise_canceling(message)
-
-		for msg in noise_cancel_message:
+		for msg in message:
 			# Each message index
 			msg_index = []
 
-			split_message = msg.split()
-
-			# Check msg_len
-			msg_len = len(split_message)
-
-			for word in split_message:
+			for word in msg:
 				word_idx = voca_dictionary.get(word)
 
 				# If word exist in voca_dictionary
@@ -94,20 +124,18 @@ class PreProcessing:
 				# If not exist in voca_dictionary
 				else:
 					# Append UNK_INDEX
-					msg_index.append(self.UNK_INDEX)
+					msg_index.append(voca_dictionary[self.UNK])
 
 			# If message length over max_sequence_length
-			if msg_len > DEFINES.max_sequence_length:
+			if len(msg_index) > DEFINES.max_sequence_length:
 				msg_index = msg_index[:DEFINES.max_sequence_length]
-				message_len.append(len(msg_index))
-			else:
-				padding = [self.PAD_INDEX for _ in range(DEFINES.max_sequence_length - len(msg_index))]
-				message_len.append(len(msg_index))
-				msg_index += padding
 
+			message_len.append(len(msg_index))
+
+			msg_index += (DEFINES.max_sequence_length - len(msg_index)) * [voca_dictionary[self.PAD]]
 			message_index.append(msg_index)
 
-		return message_index, message_len
+		return np.array(message_index), message_len
 
 	def tokenize_data(self, message):
 		"""
@@ -154,7 +182,7 @@ class PreProcessing:
 		"""
 
 		# Get chatbot data
-		data_frame = pd.read_csv("./data_in/ChatBotData.csv")
+		data_frame = pd.read_csv(DEFINES.data_path)
 		self.question_and_answer = data_frame[["Q", "A"]].values
 
 		# Get question data
@@ -163,15 +191,7 @@ class PreProcessing:
 		# Get answer data
 		answer = data_frame[["A"]].values
 
-		# Calculate percent
-		data_len = len(data_frame)
-		train_index = round(data_len * self.train_percent)
-
-		# Divide question, answer for train ans test
-		question_train = question[:train_index]
-		question_test = question[train_index:]
-
-		answer_train = answer[:train_index]
-		answer_test = answer[train_index:]
+		question_train, answer_train, question_test, answer_test = \
+			train_test_split(question, answer, test_size=0.33, random_state=42)
 
 		return question_train, question_test, answer_train, answer_test
