@@ -87,10 +87,50 @@ class PreProcessing:
 
 
 	def dec_target_processing(self):
+
 		return ""
 
-	def dec_output_processing(self):
-		return ""
+	def dec_input_processing(self, value, dictionary):
+		"""
+			seq_input_index : index data
+			seq_len : length of sentence
+		"""
+
+		seq_input_index = []
+		seq_len = []
+
+		# noise canceling
+		value = self.prepro_noise_canceling(value)
+
+		for seq in value:
+			seq_index = []
+
+			for word in seq.split():
+				# add STD
+				seq_index = [dictionary[self.STD]]
+
+				if dictionary.get(word) is not None:
+					# extend dictionary index
+					seq_index.extend(dictionary[word])
+				else:
+					# extend UNK
+					seq_index.extend(dictionary[self.UNK])
+
+			# remove length over tokens
+			if len(seq_index) > DEFINES.max_sequence_length:
+				seq_index = seq_index[:DEFINES.max_sequence_length]
+
+			# set seq_length
+			seq_len.append(len(seq_index))
+
+			# if shorter than max_sequence_length add padding
+			seq_index += (DEFINES.max_sequence_length - len(seq_index)) * [dictionary[self.PAD]]
+
+			# append index value
+			seq_input_index.append(seq_index)
+
+		return np.asarray(seq_input_index), seq_len
+
 
 	def enc_processing(self, value, dictionary):
 		"""
@@ -119,7 +159,7 @@ class PreProcessing:
 			if len(seq_index) > DEFINES.max_sequence_length:
 				seq_index = seq_index[:DEFINES.max_sequence_length]
 
-			# get seq_length
+			# set seq_length
 			seq_len.append(len(seq_index))
 
 			# if shorter than max_sequence_length add padding
