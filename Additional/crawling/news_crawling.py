@@ -5,48 +5,65 @@ import requests
 import bs4
 import time
 import re
+import pickle
 
 
 def get_news(news_link_list):
+    news = deque()
+    comment = deque()
+
     for i in range(len(news_link_list)):
-        print(news_link_list[i])
+        news_item = deque()
+        comment_item = deque()
+
+        # Find oid, aid, date, page
         a = news_link_list[i].find("oid=") + 4
         b = news_link_list[i].find("&aid=")
         c = news_link_list[i].find("&date")
-
-        dat = deque()
         oid = news_link_list[i][a:b]
-        aid = news_link_list[i][b + 5:c]
+        aid = news_link_list[i][b+5:c]
+        date = news_link_list[i][c+6:c+14]
         page = 0
 
-        # get title, content
-        # req = requests.get(news_link_list)
-        # news_html = req.text
-        # soup = bs4.BeautifulSoup(news_html, 'html.parser')
-        # title = soup.find('title').get_text()
-        #
-        # for s in soup('script'):
-        #     s.extract()
-        #
-        # content = (re.sub('<.+?>', '', str(soup.find(class_='_article_body_contents')), 0).strip())
-        #
-        # content = content.replace('."', '."\n')
-        # content = content.replace('. ', '.\n')
-        #
-        # comment = soup.find('li')
-        #
-        # print(title)
-        # print(content)
-        # print(comment)
+        # Get news title, content
+        req = requests.get(news_link_list[i])
+        news_html = req.text
+        soup = bs4.BeautifulSoup(news_html, 'html.parser')
+        title = soup.find('title').get_text()
 
-        # get comment
-        while True:
+        # Delete script tag
+        for s in soup('script'):
+            s.extract()
+
+        # Delete html tag
+        content = (re.sub('<.+?>', '', str(soup.find(class_='_article_body_contents')), 0).strip())
+
+        # Replace . -> \n, ." -> ."\n
+        content = content.replace('."', '."\n')
+        content = content.replace('. ', '.\n')
+
+        news_item.append(aid)
+        news_item.append(title)
+        news_item.append(content)
+        news_item.append(date)
+        news.append(news_item)
+
+        # Get news comment
+        count = 0
+        comment_item.append(aid)
+
+        while count < 50:
+            count += 1
             page += 1
+            dat = deque()
+
+            # Send header type
             header = {
                 'Content-Type': 'application/json; charset=utf-8',
                 "referer": news_link_list[i]
             }
 
+            # Send params type
             param = {'ticket': 'news',
                      'pool': 'cbox5',
                      '_callback': 'jQuery1707138182064460843_1523512042464',
@@ -61,28 +78,36 @@ def get_news(news_link_list):
 
             jquery_url = "https://apis.naver.com/commentBox/cbox/web_neo_list_jsonp.json"
 
-            response_comment = requests.get(jquery_url, headers=header, params=param)
-            time.sleep(1)
+            # Get request
+            comment = requests.get(jquery_url, headers=header, params=param)
 
-            temp = response_comment.text
+            # Find comment, str to json
+            temp = comment.text
             json_start = temp.find('(')
             json_end = len(temp) - 2
 
             string_data = temp[json_start + 1:json_end]
-
             json_data = json.loads(string_data)
 
             comment_len = len(json_data["result"]["commentList"])
-
             if comment_len <= 1:
                 break
 
-            for i in range(0, comment_len):
-                if json_data["result"]["commentList"][i]["contents"] is None:
+            # Parse comment
+            for idx in range(0, comment_len):
+                if json_data["result"]["commentList"][idx]["contents"] is None:
                     break
 
-                dat.append(json_data["result"]["commentList"][i]["contents"])
-                print(json_data["result"]["commentList"][i]["contents"])
+                dat.append(json_data["result"]["commentList"][idx]["contents"])
+
+            comment_item.append(dat)
+            time.sleep(0.4)
+
+        comment.append(comment_item)
+
+        # Save news_data.clf, comment_data.clf
+        pickle.dump(news, open('news_data.clf', 'wb'))
+        pickle.dump(comment, open('comment_data.clf', 'wb'))
 
 
 def get_news_links():
@@ -93,7 +118,7 @@ def get_news_links():
     # 30 Days popular news
     popular_news = deque()
 
-    for idx in range(0, 30):
+    for idx in range(1, 30):
         # Set date
         current_time = datetime.datetime.now() - datetime.timedelta(days=idx)
         current_date = current_time.strftime('%Y%m%d')
