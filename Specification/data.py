@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 import re
 import os
 
@@ -22,7 +23,7 @@ class PreProcessing:
 		self.MARKER = [self.PAD, self.STD, self.END, self.UNK]
 
 
-	def pred_next_string(self):
+	def pred_next_string(self, ):
 		return ""
 
 
@@ -73,7 +74,7 @@ class PreProcessing:
 
 
 	def make_voc(self, voc_list):
-		
+
 		char_to_idx = {}
 		idx_to_char = {}
 
@@ -100,16 +101,33 @@ class PreProcessing:
 		seq_input_index = []
 		seq_len = []
 
-		# noise canceling`
+		# noise canceling
 		value = self.prepro_noise_canceling(value)
 
 		for seq in value:
-
-
 			seq_index = []
 
+			for word in seq.split():
+				if dictionary.get(word) is not None:
+					# set word index
+					seq_index.extend(dictionary[word])
+				else:
+					# word is none
+					seq_index.extend(dictionary[self.UNK])
 
-		return ""
+			# remove length over token
+			if len(seq_index) > DEFINES.max_sequence_length:
+				seq_index = seq_index[:DEFINES.max_sequence_length]
+
+			# get seq_length
+			seq_len.append(len(seq_index))
+
+			# if shorter than max_sequence_length add padding
+			seq_index += (DEFINES.max_sequence_length - len(seq_index)) * [dictionary[self.PAD]]
+			seq_input_index.append(seq_index)
+
+		return np.asarray(seq_input_index), seq_len
+
 
 	def tokenizing_data(self, text):
 		# tokenized data
@@ -149,7 +167,8 @@ class PreProcessing:
 
 def main():
 	data = PreProcessing()
-	data.load_voc()
+	char_to_idx, idx_to_char, voc_len = data.load_voc()
+
 
 
 if __name__ == '__main__':
