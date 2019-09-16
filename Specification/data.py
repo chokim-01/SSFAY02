@@ -23,12 +23,23 @@ class PreProcessing:
 		self.MARKER = [self.PAD, self.STD, self.END, self.UNK]
 
 
-	def pred_next_string(self, ):
-		return ""
+	def pred_next_string(self, value, dictionary):
+		sentence = []
+		for text in  value:
+			# change to word in dictionary
+			sentence = [ dictionary[index] for index in text['indexs']]
+
+		answer = ""
+		# make answer
+		for word in sentence:
+			if word not in self.END and word not in self.PAD:
+				answer += word
+				answer += " "
+			
+		return answer
 
 
 	def load_voc(self):
-
 		# dictionary data
 		voc_list = []
 
@@ -74,7 +85,6 @@ class PreProcessing:
 
 
 	def make_voc(self, voc_list):
-
 		char_to_idx = {}
 		idx_to_char = {}
 
@@ -94,7 +104,7 @@ class PreProcessing:
 		seq_input_index = []
 		seq_len = []
 
-		value = self.prepro_noise_canceling(self.value)
+		value = self.prepro_noise_canceling(value)
 
 		for seq in value:
 			seq_index = []
