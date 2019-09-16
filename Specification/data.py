@@ -2,6 +2,7 @@ import re
 import pickle
 import pandas as pd
 import numpy as np
+import tensorflow as tf
 
 from sklearn.model_selection import train_test_split
 from os.path import exists
@@ -19,12 +20,48 @@ class PreProcessing:
 		self.END_INDEX = 2
 		self.UNK_INDEX = 3
 
-	def pred_next_string(self):
-		return ""
+	def in_out_dict(self, input, output, target):
+		features = {"input": input, "output": output}
+		return features, target
+
+	def train_input_fn(self, encode_train, decode_output_train, decode_target_train, batch_size):
+		# Make dataset splited each sentence
+		dataset = tf.data.Dataset.from_tensor_slices((encode_train, decode_output_train, decode_target_train))
+
+		# Shuffled whole dataset
+		dataset = dataset.shuffle(buffer_size=len(encode_train))
+
+		# Assert error, batch_size is not None
+		assert batch_size is not None, "train batchSize must not be None"
+
+		# Batch
+		dataset = dataset.batch(batch_size, drop_remainder=True)
+
+		dataset = dataset.map(self.in_out_dict())
+		dataset = dataset.repeat()
+
+		iterator = dataset.make_one_shot_iterator()
+
+		return iterator.get_next()
+
+	def pred_next_string(self, message, idx2voca_dictionary):
+		message_string = []
+
+		for msg in message:
+			message_string = [idx2voca_dictionary[index] for index in msg['indexs']]
+
+		answer = ""
+
+		for msg in message_string:
+			if msg not in self.PAD and msg not in self.END:
+				answer += msg
+				answer += " "
+
+		return answer
 
 	def load_voc(self):
 		"""
-
+		Load voc file If exist VocabularyData.voc
 		:return: voca to idx, idx to voca, length of voca
 		"""
 		vocabulary = []
@@ -32,12 +69,12 @@ class PreProcessing:
 
 		# If exist vocabularyData.voc
 		if exists(DEFINES.vocabulary_path):
+			exist_check = True
 			# Read vocabulary file
 			with open(DEFINES.vocabulary_path, "r", encoding="utf-8") as file:
 				# Remove space each line
 				for line in file:
 					vocabulary.append(line.strip())
-			exist_check = True
 		else:
 			# If exists data
 			if exists(DEFINES.data_path):
@@ -69,12 +106,6 @@ class PreProcessing:
 				with open(DEFINES.vocabulary_path, "w", encoding="utf-8") as file:
 					for voca in vocabulary:
 						file.write(voca + "\n")
-
-				# Make char2idx, idx2char dict
-				if not exist_check:
-					with open(DEFINES.vocabulary_path, "r", encoding="utf-8") as file:
-						for line in file:
-							vocabulary.append(line.strip())
 			else:
 				print("Check data or path")
 
@@ -83,23 +114,53 @@ class PreProcessing:
 		return voca2idx, idx2voca, len(voca2idx)
 
 	def make_voc(self, vocabulary):
+		"""
 
+		:param vocabulary: sentence splited by space
+		:return: voca to index, index to voca
+		"""
 		voca2idx = {word: idx for idx, word in enumerate(vocabulary)}
 		idx2voca = {idx: word for idx, word in enumerate(vocabulary)}
 
 		return voca2idx, idx2voca
 
 	def dec_target_processing(self, message, voca_dictionary):
-		return ""
+		message_target_index = []
 
-	def dec_output_processing(self, message, voca_dictionary):
-		return ""
+		for msg in message:
+			msg_index = [voca_dictionary[voca] for voca in msg]
 
-	def enc_processing(self, message, voca_dictionary):
+			if len(msg_index) >= DEFINES.max_sequence_length:
+				msg_index = msg_index[:DEFINES.max_sequence_length+1] + [voca_dictionary[self.END]]
+			else:
+				msg_index += [voca_dictionary[self.END]]
+
+			msg_index += (DEFINES.max_sequence_length - len(msg_index)) * [voca_dictionary[self.PAD]]
+			message_target_index.append(msg_index)
+
+		return np.asarray(message_target_index)
+
+	def dec_output_processing(self, message, voca2idx_dictionary):
+		message_output_index = []
+		message_output_length = []
+
+		for msg in message:
+			msg_index = [[voca2idx_dictionary[self.STD]] + [voca2idx_dictionary[voca] for voca in msg]]
+
+			if len(msg_index) > DEFINES.max_sequence_length:
+				msg_index = msg_index[:DEFINES.max_sequence_length]
+
+			message_output_length.append(len(msg_index))
+			msg_index += (DEFINES.max_sequence_length - len(msg_index)) * [voca2idx_dictionary[self.PAD]]
+			message_output_index.append(msg_index)
+
+		return np.asarray(message_output_index), message_output_length
+
+	def enc_processing(self, message, voca2idx_dictionary):
 		"""
 
 		:param message: noise_canceled and tokenized message
-		:param voca_dictionary: tokenize word and index
+		:param voca2idx_dictionary: tokenize word and index
 		:return: message index as np.array and message length
 		"""
 
@@ -107,14 +168,14 @@ class PreProcessing:
 		message_index = []
 
 		# Message length list
-		message_len = []
+		message_length = []
 
 		for msg in message:
 			# Each message index
 			msg_index = []
 
 			for word in msg:
-				word_idx = voca_dictionary.get(word)
+				word_idx = voca2idx_dictionary.get(word)
 
 				# If word exist in voca_dictionary
 				if word_idx is not None:
@@ -124,18 +185,18 @@ class PreProcessing:
 				# If not exist in voca_dictionary
 				else:
 					# Append UNK_INDEX
-					msg_index.append(voca_dictionary[self.UNK])
+					msg_index.append(voca2idx_dictionary[self.UNK])
 
 			# If message length over max_sequence_length
 			if len(msg_index) > DEFINES.max_sequence_length:
 				msg_index = msg_index[:DEFINES.max_sequence_length]
 
-			message_len.append(len(msg_index))
+			message_length.append(len(msg_index))
 
-			msg_index += (DEFINES.max_sequence_length - len(msg_index)) * [voca_dictionary[self.PAD]]
+			msg_index += (DEFINES.max_sequence_length - len(msg_index)) * [voca2idx_dictionary[self.PAD]]
 			message_index.append(msg_index)
 
-		return np.array(message_index), message_len
+		return np.array(message_index), message_length
 
 	def tokenize_data(self, message):
 		"""
