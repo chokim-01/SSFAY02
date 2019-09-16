@@ -46,7 +46,7 @@ def get_news(news_link_list):
         news_item.append(title)
         news_item.append(content)
         news_item.append(date)
-        news.append(news_item)
+        news_save.append(news_item)
 
         # Get news comment
         count = 0
