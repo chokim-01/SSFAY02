@@ -9,24 +9,24 @@ import pickle
 
 
 def get_news(news_link_list):
-    news = deque()
     comment = deque()
+    news_save = deque()
+    comment_save = deque()
 
-    for i in range(len(news_link_list)):
+    for news_link in range(2):
         news_item = deque()
-        comment_item = deque()
 
         # Find oid, aid, date, page
-        a = news_link_list[i].find("oid=") + 4
-        b = news_link_list[i].find("&aid=")
-        c = news_link_list[i].find("&date")
-        oid = news_link_list[i][a:b]
-        aid = news_link_list[i][b+5:c]
-        date = news_link_list[i][c+6:c+14]
+        oid_idx = news_link_list[news_link].find("oid=") + 4
+        aid_idx = news_link_list[news_link].find("&aid=")
+        date_idx = news_link_list[news_link].find("&date")
+        oid = news_link_list[news_link][oid_idx:aid_idx]
+        aid = news_link_list[news_link][aid_idx+5:date_idx]
+        date = news_link_list[news_link][date_idx+6:date_idx+14]
         page = 0
 
         # Get news title, content
-        req = requests.get(news_link_list[i])
+        req = requests.get(news_link_list[news_link])
         news_html = req.text
         soup = bs4.BeautifulSoup(news_html, 'html.parser')
         title = soup.find('title').get_text()
@@ -50,17 +50,15 @@ def get_news(news_link_list):
 
         # Get news comment
         count = 0
-        comment_item.append(aid)
 
         while count < 50:
             count += 1
             page += 1
-            dat = deque()
 
             # Send header type
             header = {
                 'Content-Type': 'application/json; charset=utf-8',
-                "referer": news_link_list[i]
+                "referer": news_link_list[news_link]
             }
 
             # Send params type
@@ -95,19 +93,17 @@ def get_news(news_link_list):
 
             # Parse comment
             for idx in range(0, comment_len):
+                comment_item = deque()
                 if json_data["result"]["commentList"][idx]["contents"] is None:
                     break
-
-                dat.append(json_data["result"]["commentList"][idx]["contents"])
-
-            comment_item.append(dat)
-            time.sleep(0.4)
-
-        comment.append(comment_item)
+                comment_item.append(aid)
+                comment_item.append(json_data["result"]["commentList"][idx]["contents"])
+                comment_save.append(comment_item)
+            time.sleep(0.1)
 
         # Save news_data.clf, comment_data.clf
-        pickle.dump(news, open('news_data.clf', 'wb'))
-        pickle.dump(comment, open('comment_data.clf', 'wb'))
+        pickle.dump(news_save, open('news_data.clf', 'wb'))
+        pickle.dump(comment_save, open('comment_data.clf', 'wb'))
 
 
 def get_news_links():
