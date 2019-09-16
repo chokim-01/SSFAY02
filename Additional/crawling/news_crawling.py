@@ -13,7 +13,7 @@ def get_news(news_link_list):
     news_save = deque()
     comment_save = deque()
 
-    for news_link in range(2):
+    for news_link in range(len(news_link_list)):
         news_item = deque()
 
         # Find oid, aid, date, page
