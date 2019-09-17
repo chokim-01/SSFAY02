@@ -56,7 +56,7 @@ def add_news():
 
     news_data, comments_data = load_data()
 
-    sql = "insert into News (news_title, news_context) values()"
+    sql = "insert into News (news_title, news_context, news_date) values()"
     cursor.executemany(sql, news_data)
     db.commit()
 
@@ -72,8 +72,8 @@ def add_comment(comments_data):
 
     for comment in comments_data:
         comment.append(load_logistic_mention(comment[1]))
-        ''
-    sql = "insert into comments(news_num, context, label) values (%s, %s, %s)"
+
+    sql = "insert into comments(news_num, context, label_news, label_local) values ()"
 
     cursor.executemany(sql, comments_data)
     db.commit()
