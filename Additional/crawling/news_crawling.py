@@ -13,6 +13,7 @@ def get_news(news_link_list):
     news_save = deque()
     comment_save = deque()
 
+    cnt = 0
     for news_link in range(len(news_link_list)):
         news_item = deque()
 
@@ -104,6 +105,8 @@ def get_news(news_link_list):
         # Save news_data.clf, comment_data.clf
         pickle.dump(news_save, open('news_data.clf', 'wb'))
         pickle.dump(comment_save, open('comment_data.clf', 'wb'))
+        cnt += 1
+        print(cnt)
 
 
 def get_news_links():
