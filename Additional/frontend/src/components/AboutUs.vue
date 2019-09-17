@@ -1,14 +1,14 @@
 <template>
   <v-layout row wrap>
     <v-flex class="content">
-          <v-flex xs12 class="title1" my-4>팀 소개</v-flex>
-          <v-flex xs12 class="title2" my-4>이 프로젝트를 하게 된 이유</v-flex>
-          <v-flex xs12 class="content1" my-4>
+          <v-flex class="title1" xs12 my-4>팀 소개</v-flex>
+          <v-flex class="title2" xs12 my-4>이 프로젝트를 하게 된 이유</v-flex>
+          <v-flex class="content1" xs12 my-4>
             dddd
           </v-flex></br></br>
           <hr/>
           </br></br>
-          <v-flex xs12 class="title2" my-4>팀원 소개</v-flex>
+          <v-flex class="title2" xs12 my-4>팀원 소개</v-flex>
         <div class="collumns">
           <div class="collumn">
             <div class="head"><span class="headline hl1">Give people courage</span>
@@ -87,20 +87,22 @@
   }
 </script>
 
-<style>
+<style scoped>
 @import url('https://fonts.googleapis.com/css?family=Song+Myung&display=swap');
 
 #newsDetail {
   background-color: #D8D8D8;
 }
 
-.collumn .figure {
+.collumn
+.figure {
     margin: 0 0 20px;
 }
 
 .contentCard {
   height: auto;
 }
+
 .title1 {
   overflow: hidden;
   font-family: 'Song Myung', serif;
@@ -142,7 +144,8 @@
     width: 100%;
 }
 
-.collumn .headline {
+.collumn
+.headline {
     text-align: center;
     line-height: normal;
     font-family: 'Playfair Display', serif;
@@ -150,7 +153,8 @@
     margin: 0 auto;
 
 }
-.collumn .headline.hl1 {
+.collumn
+.headline.hl1 {
     font-weight: 700;
     font-size: 30px;
     text-transform: uppercase;
