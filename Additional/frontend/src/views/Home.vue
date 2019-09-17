@@ -24,7 +24,6 @@
   </div>
 </div>
 
-
 <NewsList v-if="NowPage==='NewsList'" />
 <Search v-if="NowPage==='Search'" />
 <AboutUs v-if="NowPage==='AboutUs'" />
