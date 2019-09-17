@@ -9,8 +9,8 @@ import conn.conn as conn
 
 # Get file path
 ROOT_PATH = os.path.dirname(os.path.abspath(__file__))
-STATIC_PATH = os.path.join(ROOT_PATH + "\\..\\..\\front", 'dist')
-
+STATIC_PATH = os.path.join(ROOT_PATH + "\\..\\..\\front", 'test\dist')
+print(STATIC_PATH)
 app = Flask(__name__, static_folder=STATIC_PATH, static_url_path='')
 
 # Get ai model
@@ -96,9 +96,9 @@ def get_comments_page():
     cursor = conn.db().cursor()
 
     page = int(request.form.get("page"))
-    limit = (page - 1) * 10
+    limit = (page - 1) * 100
 
-    sql = "select * from comments order by num desc limit %s, 10"
+    sql = "select * from comments order by comment_num desc limit %s, 10"
     cursor.execute(sql, limit)
     result = cursor.fetchall()
 
@@ -123,13 +123,13 @@ def comment_push():
 
 
 # Edit comment label naive
-@app.route("/api/edit/label", methods=["POST"])
-def label_logistic_edit():
+@app.route("/api/edit/labelnews", methods=["POST"])
+def label_news_edit():
     db = conn.db()
     cursor = db.cursor()
 
     num = request.form.get("num")
-    label = request.form.get("label")
+    label = request.form.get("label_news")
 
     label = int(label)
     if label == 1:
@@ -137,7 +137,26 @@ def label_logistic_edit():
     else:
         label = 1
 
-    sql = "update comments set label =%s where num=%s"
+    sql = "update comments set label_news =%s where comment_num=%s"
+    cursor.execute(sql, (label, num))
+    db.commit()
+    return ""
+
+@app.route("/api/edit/labellocal", methods=["POST"])
+def label_local_edit():
+    db = conn.db()
+    cursor = db.cursor()
+
+    num = request.form.get("num")
+    label = request.form.get("label_local")
+
+    label = int(label)
+    if label == 1:
+        label = 0
+    else:
+        label = 1
+
+    sql = "update comments set label_local =%s where comment_num=%s"
     cursor.execute(sql, (label, num))
     db.commit()
     return ""
