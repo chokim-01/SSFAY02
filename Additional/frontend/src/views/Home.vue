@@ -81,4 +81,5 @@ export default {
     border-top: 2px solid #2f2f2f;
     padding: 12px 0;
 }
+
 </style>

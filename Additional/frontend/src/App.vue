@@ -20,4 +20,5 @@ export default {
 .v-content__wrap {
   background-color: #d2d2d2;
 }
+
 </style>
