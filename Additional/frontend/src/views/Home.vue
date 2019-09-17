@@ -26,9 +26,9 @@
 </template>
 
 <script>
-import NewsList from '@/components/NewsList.vue'
-import Search from '@/components/Search.vue'
-import AboutUs from '@/components/AboutUs.vue'
+import NewsList from "@/components/NewsList.vue"
+import Search from "@/components/Search.vue"
+import AboutUs from "@/components/AboutUs.vue"
 
 export default {
   name: 'home',
