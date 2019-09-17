@@ -75,15 +75,19 @@ export default {
 }
 </script>
 
-<style lang="css" scoped>
+<style lang="scss" scoped>
 
-
+body {
+    font-family: 'Droid Serif', serif;
+    font-size: 14px;
+}
 .content {
     font-size: 0;
     line-height: 0;
     word-spacing: -.31em;
     display: inline-block;
-    margin: 30px 2% 0;
+
+    margin-left: 5%;
 
 }
 .collumns {
