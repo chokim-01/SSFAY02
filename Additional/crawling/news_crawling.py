@@ -17,14 +17,13 @@ def get_news(news_link_list):
     for news_link in range(len(news_link_list)):
         news_item = deque()
 
-        # Find oid, aid, date, page
+        # Find oid, aid, date
         oid_idx = news_link_list[news_link].find("oid=") + 4
         aid_idx = news_link_list[news_link].find("&aid=")
         date_idx = news_link_list[news_link].find("&date")
         oid = news_link_list[news_link][oid_idx:aid_idx]
         aid = news_link_list[news_link][aid_idx+5:date_idx]
         date = news_link_list[news_link][date_idx+6:date_idx+14]
-        page = 0
 
         # Get news title, content
         req = requests.get(news_link_list[news_link])
@@ -49,12 +48,11 @@ def get_news(news_link_list):
         news_item.append(date)
         news_save.append(news_item)
 
-        # Get news comment
+        # Control news page
         news_page_count = 0
 
         while news_page_count < 50:
             news_page_count += 1
-            page += 1
 
             # Send header type
             header = {
@@ -72,7 +70,7 @@ def get_news(news_link_list):
                      'indexSize': '10',
                      'listType': 'OBJECT',
                      'pageType': 'more',
-                     'page': page
+                     'page': news_page_count
                      }
 
             jquery_url = "https://apis.naver.com/commentBox/cbox/web_neo_list_jsonp.json"
