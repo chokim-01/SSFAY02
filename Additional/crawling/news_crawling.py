@@ -13,7 +13,7 @@ def get_news(news_link_list):
     news_save = deque()
     comment_save = deque()
 
-    cnt = 0
+    news_cnt = 0
     for news_link in range(len(news_link_list)):
         news_item = deque()
 
@@ -50,10 +50,10 @@ def get_news(news_link_list):
         news_save.append(news_item)
 
         # Get news comment
-        count = 0
+        news_page_count = 0
 
-        while count < 50:
-            count += 1
+        while news_page_count < 50:
+            news_page_count += 1
             page += 1
 
             # Send header type
@@ -105,8 +105,8 @@ def get_news(news_link_list):
         # Save news_data.clf, comment_data.clf
         pickle.dump(news_save, open('news_data.clf', 'wb'))
         pickle.dump(comment_save, open('comment_data.clf', 'wb'))
-        cnt += 1
-        print(cnt)
+        news_cnt += 1
+        print(news_cnt)
 
 
 def get_news_links():
