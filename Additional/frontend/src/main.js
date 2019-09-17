@@ -9,6 +9,7 @@ import Swimlane from 'vue-swimlane'
 Vue.use(Swimlane)
 Vue.use(Vuetify)
 
+
 Vue.config.productionTip = false
 
 new Vue({
