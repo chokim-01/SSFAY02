@@ -72,12 +72,10 @@ export default {
         margin-left: 10px;
     }
 }
-
 .app {
     font-size: 14px;
     color: #2f2f2f;
 }
-
 .navi {
     border-bottom: 2px solid #2f2f2f;
     border-top: 2px solid #2f2f2f;
