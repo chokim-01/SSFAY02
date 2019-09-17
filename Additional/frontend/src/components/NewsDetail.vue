@@ -196,4 +196,5 @@ hjksegye.com\
     padding-top: 40px !important;
   }
 }
+
 </style>
