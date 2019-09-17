@@ -47,11 +47,13 @@ def main(self):
             'attention_head_size': DEFINES.attention_head_size,
             'learning_rate': DEFINES.learning_rate,  # 학습율 설정한다.
             'vocabulary_length': vocabulary_length,  # 딕셔너리 크기를 설정한다.
-            'embedding_size': DEFINES.embedding_size,  # 임베딩 크기를 설정한다.
+            'embedding': DEFINES.embedding,  # 임베딩 크기를 설정한다.
             'layer_size': DEFINES.layer_size,
             'max_sequence_length': DEFINES.max_sequence_length,
-            'xavier_initializer': DEFINES.xavier_initializer
+            'xavier_initializer': DEFINES.xavier_initializer,
+            'multilayer': DEFINES.multilayer
         })
+
 
     # Training
     classifier.train(input_fn=lambda: pre_processing.train_input_fn(
@@ -67,3 +69,7 @@ def main(self):
 if __name__ == '__main__':
     tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.INFO)
     tf.compat.v1.app.run(main)
+
+"""
+EVAL set accuracy: 0.894
+"""

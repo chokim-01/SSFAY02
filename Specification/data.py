@@ -24,6 +24,26 @@ class PreProcessing:
 		features = {"input": input, "output": output}
 		return features, target
 
+	def eval_input_fn(self, encode_train, decode_output_train, decode_target_train, batch_size):
+		# Make dataset splited each sentence
+		dataset = tf.data.Dataset.from_tensor_slices((encode_train, decode_output_train, decode_target_train))
+
+		# Shuffled whole dataset
+		dataset = dataset.shuffle(buffer_size=len(encode_train))
+
+		# Assert error, batch_size is not None
+		assert batch_size is not None, "train batchSize must not be None"
+
+		# Batch
+		dataset = dataset.batch(batch_size, drop_remainder=True)
+
+		dataset = dataset.map(self.in_out_dict)
+		dataset = dataset.repeat(1)
+
+		iterator = dataset.make_one_shot_iterator()
+
+		return iterator.get_next()
+
 	def train_input_fn(self, encode_train, decode_output_train, decode_target_train, batch_size):
 		# Make dataset splited each sentence
 		dataset = tf.data.Dataset.from_tensor_slices((encode_train, decode_output_train, decode_target_train))
@@ -37,7 +57,7 @@ class PreProcessing:
 		# Batch
 		dataset = dataset.batch(batch_size, drop_remainder=True)
 
-		dataset = dataset.map(self.in_out_dict())
+		dataset = dataset.map(self.in_out_dict)
 		dataset = dataset.repeat()
 
 		iterator = dataset.make_one_shot_iterator()
@@ -145,7 +165,7 @@ class PreProcessing:
 		message_output_length = []
 
 		for msg in message:
-			msg_index = [[voca2idx_dictionary[self.STD]] + [voca2idx_dictionary[voca] for voca in msg]]
+			msg_index = [voca2idx_dictionary[self.STD]] + [voca2idx_dictionary[voca] for voca in msg]
 
 			if len(msg_index) > DEFINES.max_sequence_length:
 				msg_index = msg_index[:DEFINES.max_sequence_length]
