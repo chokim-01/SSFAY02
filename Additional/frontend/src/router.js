@@ -1,8 +1,7 @@
 import Vue from 'vue'
 import Router from 'vue-router'
 import Home from './views/Home.vue'
-import NewsDetail from './views/NewsDetail.vue'
-import NewsList from './views/NewsList.vue'
+
 
 Vue.use(Router)
 
@@ -15,15 +14,6 @@ export default new Router({
       name: 'home',
       component: Home
     },
-    {
-      path: '/newsDetail',
-      name: 'newsDetail',
-      component: NewsDetail
-    },
-    {
-      path: '/newsList',
-      name: 'newsList',
-      component: NewsList
-    }
+
   ]
 })
