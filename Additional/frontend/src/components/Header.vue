@@ -16,9 +16,9 @@
     <div class="subhead">2019.09.21 published by SSAFY
       <div class="text-xs-center">
 
-   <v-btn color="secondary" @click="MovePage(News)"> News </v-btn>
-   <v-btn color="secondary" @click="MovePage(Search)" > Search </v-btn>
-   <v-btn color="secondary" @click="MovePage(AboutUs)"> About Us </v-btn>
+   <v-btn color="secondary" @click="MovePage('News')"> News </v-btn>
+   <v-btn color="secondary" @click="MovePage('Search')" > Search </v-btn>
+   <v-btn color="secondary" @click="MovePage('AboutUs')"> About Us </v-btn>
 
  </div>
 
@@ -43,7 +43,6 @@ export default {
 
     methods: {
     MovePage(location){
-      console.log(location)
       this.NowPage = location;
     }
   }
