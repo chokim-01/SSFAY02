@@ -11,83 +11,100 @@ with open('../../Model/word_indices.clf', 'rb') as model:
     word_indices = pickle.load(model)
 
 
-# Tokenize data
-def tokenize_data(data_row):
-    """
-    :param data_row:
-    :return: tokenize data ([word/morpheme, word/morpheme, word/morpheme, ...]
-    """
-    okt = Okt()
-
-    return ['/'.join(t) for t in okt.pos(data_row, norm=True, stem=True)]
-
-
-# Logistic Regression Model
-def load_logistic_mention(mention):
-    global logistic_regression_model, word_indices
-    mention_token_data = tokenize_data(mention)
-
-    x_mention = lil_matrix((1, len(word_indices) + 1), dtype=np.int64)
-
-    for token in mention_token_data:
-        word = token.split("/")[0]
-        if word in word_indices:
-            x_mention[0, word_indices[word]] = 1
-
-    return int(logistic_regression_model.predict(x_mention)[0])
-
-
 # Load data
 def load_data():
-    # Get data
-    with open('../../Data/train_news_data.clf', 'rb') as news_data:
+    # Get news data
+    with open('../../crawling/news_data.clf', 'rb') as news_data:
         news_data = pickle.load(news_data)
 
-    with open('../../Data/train_comments_data.clf', 'rb') as comment_data:
-        comments_data = pickle.load(comment_data)
+    news_len = len(news_data)
 
-    return news_data, comments_data
+    news_d = [[ _ for _ in range(4)] for _ in range(news_len)]
+
+    input_count = 0
+    blank_count = 0
+
+    for idx in range(news_len):
+        flag = False
+        for i in range(idx-1):
+            if int(news_data[idx][0]) == news_d[i][0]:
+                flag = True
+                blank_count +=1
+                break
+        if flag:
+            continue
+
+        # news num, title, context, date formating
+        news_d[input_count][0] = int(news_data[idx][0])
+        news_d[input_count][1] = news_data[idx][1]
+        news_d[input_count][2] = news_data[idx][2]
+        news_d[input_count][3] = int(news_data[idx][3])
+
+        input_count +=1
+
+    news_d = news_d[:news_len-blank_count]
+
+    with open('../../crawling/comment_data.clf', 'rb') as comments:
+        comments_data = pickle.load(comments)
+
+    comments_len = len(comments_data)
+
+    # Get comments data
+    comments_d = [[ _ for _ in range(2)] for _ in range(comments_len)]
+    for idx in range(comments_len):
+        comments_d[idx][0] = int(comments_data[idx][0])
+        comments_d[idx][1] = comments_data[idx][1]
+
+    return news_d, comments_d
 
 
 # Add News test case to DB
-def add_news():
+def add_news(news_data):
+
+    print(" Input News start")
     db = conn.db()
     cursor = db.cursor()
 
-    news_data, comments_data = load_data()
-
-    sql = "insert into News (news_title, news_context, news_date) values()"
+    sql = "insert into News (news_num, news_title, news_context, news_date) values(%s, %s, %s, %s)"
     cursor.executemany(sql, news_data)
     db.commit()
-
-    add_comment()
 
     return ""
 
 
 # Add comment case to DB
 def add_comment(comments_data):
+
     db = conn.db()
     cursor = db.cursor()
 
+    cnt = 0
     for comment in comments_data:
-        comment.append(load_logistic_mention(comment[1]))
+        comment.append(0)
+        comment.append(0)
+        if "xF0" in comment[1]:
+            print(comment[0])
+            print(comment[1])
+        cnt +=1
 
-    sql = "insert into comments(news_num, context, label_news, label_local) values ()"
+    sql = "insert into comments(news_num, comment_context, label_news, label_local) values (%s, %s, %s, %s)"
 
     cursor.executemany(sql, comments_data)
     db.commit()
 
+    return
 
 def add_testcase():
     news_data, comments_data = load_data()
     add_news(news_data)
     add_comment(comments_data)
 
+    return
 
 def main():
     add_testcase()
 
+    return
 
 if __name__ == '__main__':
     main()
