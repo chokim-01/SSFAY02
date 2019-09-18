@@ -35,7 +35,7 @@ class PreProcessing:
 			if word not in self.END and word not in self.PAD:
 				answer += word
 				answer += " "
-			
+
 		return answer
 
 
