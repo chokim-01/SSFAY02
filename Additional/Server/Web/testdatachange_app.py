@@ -9,7 +9,7 @@ import conn.conn as conn
 
 # Get file path
 ROOT_PATH = os.path.dirname(os.path.abspath(__file__))
-STATIC_PATH = os.path.join(ROOT_PATH + "\\..\\..\\front", 'test\dist')
+STATIC_PATH = os.path.join(ROOT_PATH + "\\..\\..\front_testdatainput'dist')
 print(STATIC_PATH)
 app = Flask(__name__, static_folder=STATIC_PATH, static_url_path='')
 
@@ -170,7 +170,7 @@ def comment_del():
 
     num = request.form.get("num")
 
-    sql = "delete from comments where num = %s"
+    sql = "delete from comments where comment_num = %s"
     cursor.execute(sql, num)
     db.commit()
 
