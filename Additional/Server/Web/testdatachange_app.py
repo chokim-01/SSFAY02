@@ -9,7 +9,7 @@ import conn.conn as conn
 
 # Get file path
 ROOT_PATH = os.path.dirname(os.path.abspath(__file__))
-STATIC_PATH = os.path.join(ROOT_PATH + "\\..\\..\front_testdatainput'dist')
+STATIC_PATH = os.path.join(ROOT_PATH + "\\..\\..\\front_testdatainput",'dist')
 print(STATIC_PATH)
 app = Flask(__name__, static_folder=STATIC_PATH, static_url_path='')
 
@@ -142,6 +142,7 @@ def label_news_edit():
     db.commit()
     return ""
 
+
 @app.route("/api/edit/labellocal", methods=["POST"])
 def label_local_edit():
     db = conn.db()
@@ -175,6 +176,7 @@ def comment_del():
     db.commit()
 
     return ""
+
 
 def main():
     app.run(debug=True)
