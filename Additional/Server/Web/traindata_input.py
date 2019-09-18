@@ -1,14 +1,5 @@
-from scipy.sparse import lil_matrix
-from konlpy.tag import Okt
-import numpy as np
-import pickle
 import conn.conn as conn
-
-with open('../../Model/logistic_regression_model.clf', 'rb') as model:
-    logistic_regression_model = pickle.load(model)
-
-with open('../../Model/word_indices.clf', 'rb') as model:
-    word_indices = pickle.load(model)
+import pickle
 
 
 # Load data
@@ -21,6 +12,7 @@ def load_data():
 
     news_d = [[ _ for _ in range(4)] for _ in range(news_len)]
 
+    # Count of Deduplication
     input_count = 0
     blank_count = 0
 
@@ -44,12 +36,13 @@ def load_data():
 
     news_d = news_d[:news_len-blank_count]
 
+    # Get comment data
     with open('../../crawling/comment_data.clf', 'rb') as comments:
         comments_data = pickle.load(comments)
 
     comments_len = len(comments_data)
 
-    # Get comments data
+    # comments news_num, context, date formating
     comments_d = [[ _ for _ in range(2)] for _ in range(comments_len)]
     for idx in range(comments_len):
         comments_d[idx][0] = int(comments_data[idx][0])
@@ -82,9 +75,6 @@ def add_comment(comments_data):
     for comment in comments_data:
         comment.append(0)
         comment.append(0)
-        if "xF0" in comment[1]:
-            print(comment[0])
-            print(comment[1])
         cnt +=1
 
     sql = "insert into comments(news_num, comment_context, label_news, label_local) values (%s, %s, %s, %s)"
@@ -94,6 +84,7 @@ def add_comment(comments_data):
 
     return
 
+
 def add_testcase():
     news_data, comments_data = load_data()
     add_news(news_data)
@@ -101,10 +92,12 @@ def add_testcase():
 
     return
 
+
 def main():
     add_testcase()
 
     return
+
 
 if __name__ == '__main__':
     main()
