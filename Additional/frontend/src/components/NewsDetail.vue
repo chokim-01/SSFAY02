@@ -5,8 +5,8 @@
           <v-flex id="newspaperTitle" xs12 >
             {{ title }}
           </v-flex>
-          <v-flex xs12 style="text-align: center;" mb-4>
-            <v-chip v-for="idx in 6" :key="idx" color="red" outline style="margin:10px;"> <!--  임시 -->
+          <v-flex class="text-xs-center" xs12 mb-4>
+            <v-chip v-for="idx in 6" :key="idx" color="red" outline> <!--  임시 -->
               # 블라블라
             </v-chip>
           </v-flex>
@@ -31,9 +31,8 @@
       <v-card id="newsComment" flat>
         <h2>댓글 111개</h2>
         <v-list>
-          <template v-for="tmpIdx in 5"
-          style="height: 35px !important; overflow: hidden;">
-              <v-layout :key="tmpIdx+'key'" row wrap style="min-height: 50px;">
+          <template v-for="tmpIdx in 5" class="cmtRow">
+              <v-layout :key="tmpIdx+'key'" class="mh50" row wrap>
                 <v-flex class="newsCommentRow" xs12 sm2><b>2019-09-19</b></v-flex>
                 <v-flex class="newsCommentRow" v-text="tmp_comment" xs10 sm9></v-flex>
                 <v-flex xs2 sm1><v-chip color="white" text-color="blue" label>
@@ -42,7 +41,7 @@
                 </v-chip></v-flex>
               </v-layout>
               <v-divider />
-              <v-layout :key="tmpIdx+'key2'" row wrap style="min-height: 50px;">
+              <v-layout :key="tmpIdx+'key2'" class="mh50" row wrap>
                 <v-flex class="newsCommentRow" xs12 sm2><b>2019-09-19</b></v-flex>
                 <v-flex class="newsCommentRow" v-text="tmp_comment" xs10 sm9></v-flex>
                 <v-flex xs2 sm1><v-chip color="white" text-color="red" label>
@@ -105,15 +104,15 @@ export default {
   mounted() {
     var ctx = document.getElementById('PNChart');
     var myChart = new Chart(ctx, {
-      type: 'doughnut',
+      type: "doughnut",
       data: {
-        labels: ['긍정', '부정'],
+        labels: ["긍정", "부정"],
         datasets: [{
-          label: '# of Votes',
+          label: "# of Votes",
           data: [72, 28],
           backgroundColor: [
-            '#01A9DB',
-            '#FE2E64'
+            "#01A9DB",
+            "#FE2E64"
           ]
         }]
       },
@@ -122,17 +121,17 @@ export default {
       }
     });
 
-    var ctx2 = document.getElementById('TimeChart').getContext('2d');
+    var ctx2 = document.getElementById("TimeChart").getContext("2d");
     var chart = new Chart(ctx2, {
     type: 'line',
     data: {
             labels: ["12am", "1am", "2am", "3am", "4am", "5am", "6am", "7am", "8am", "9am", "10am", "11am", "12am"],
             datasets: [{
-                label: '시간대별 댓글 작성 추이',
+                label: "시간대별 댓글 작성 추이",
                 data: [20000, 14000, 12000, 15000, 18000, 19000, 22000,20000, 14000, 12000, 15000, 18000, 19000, 22000],
-                borderColor: '#FA5882',
-                backgroundColor: '#00000000',
-                type: 'line',
+                borderColor: "#FA5882",
+                backgroundColor: "#00000000",
+                type: "line",
                 pointRadius: 0,
 					fill: false,
 					lineTension: 0,
@@ -155,7 +154,7 @@ export default {
 </script>
 <style scoped>
 @import url("https://fonts.googleapis.com/css?family=Song+Myung&display=swap");
-@import url('https://fonts.googleapis.com/css?family=Noto+Serif+KR&display=swap');
+@import url("https://fonts.googleapis.com/css?family=Noto+Serif+KR&display=swap");
 .posCenter {
   margin: 0 auto;
 }
@@ -220,6 +219,15 @@ export default {
 
 .newsCommentRow {
   padding:12px 0px;
+}
+
+.cmtRow {
+  height: 35px !important;
+  overflow: hidden;
+}
+
+.mh50 {
+  min-height: 50px;
 }
 
 #newsComment * {
