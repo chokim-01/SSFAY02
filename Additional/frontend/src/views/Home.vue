@@ -12,6 +12,15 @@
             <v-btn color="secondary" @click="MovePage('NewsList')"> News </v-btn>
             <v-btn color="secondary" @click="MovePage('Search')"> Search </v-btn>
             <v-btn color="secondary" @click="MovePage('AboutUs')"> About Us </v-btn>
+            <v-icon class="chatbotIcon" @click.stop="menu = !menu">far fa-comment-dots</v-icon>
+            <v-menu class="d" v-model="menu" :close-on-content-click="false" :nudge-width="200" offset-y>
+              <template v-slot:activator="{ on }"></template>
+
+              <v-card>
+                <v-flex class="chatbox"></v-flex>
+                <textarea class="chattext" v-model="text" @keyup.enter="enter" name="content" rows="2" placeholder="입력하세요."></textarea>
+              </v-card>
+            </v-menu>
           </div>
         </div>
       </div>
@@ -40,6 +49,9 @@ export default {
   data() {
     return {
       NowPage: "AboutUs",
+      menu: false,
+      text: "",
+      check: false
     }
   },
 
@@ -47,6 +59,18 @@ export default {
     MovePage(location) {
       this.NowPage = location;
       console.log(this.NowPage)
+    },
+    enter(){
+      if(this.check){
+        this.check = !this.check
+        return ;
+      }
+
+      this.check = !this.check
+      var select = document.querySelector('.chatbox')
+      select.innerHTML += "<p class='arrow_box'>"+ this.text +"</p></br>"
+      select.scrollTop = select.scrollHeight;
+      this.text = ""
     }
   }
 
@@ -80,6 +104,28 @@ export default {
     border-bottom: 2px solid #2f2f2f;
     border-top: 2px solid #2f2f2f;
     padding: 12px 0;
+}
+
+.chatbotIcon {
+  margin-left: 10px;
+  font-size: 30px;
+}
+
+.chatbox {
+  height: 350px;
+  border: 1px solid black;
+  overflow-y:scroll;
+}
+
+.d {
+  width: 15%;
+  margin: auto;
+}
+
+.chattext {
+  width: 80%;
+  border: 0;
+  outline: 0;
 }
 
 </style>
