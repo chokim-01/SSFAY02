@@ -1,26 +1,27 @@
 <template>
-  <v-layout id="newsDetail" row wrap>
-    <v-flex class="posCenter" xs12 sm8 my-5>
-      <v-card id="newspaper">
+  <v-layout row wrap>
+    <v-flex class="posCenter" xs12 sm9 mb-5>
         <v-layout row wrap pb-4>
           <v-flex id="newspaperTitle" xs12 my-4>
             {{ title }}
           </v-flex>
-          <v-flex  id="newspaperContent" xs12 sm8 pa-3>
+          <v-flex  id="newspaperContent" xs12 pa-3>
             {{ content }}
           </v-flex>
-          <v-flex id="newspaperGraph" xs12 sm4 pa-3>
-            <v-layout row wrap>
-              <canvas id="myChart" width="200" height="200"/>
-              <v-flex xs12 mt-5>
-                <v-chip v-for="idx in 6" :key="idx" color="red" outline> <!--  임시 -->
-                  # 블라블라
-                </v-chip>
-              </v-flex>
-            </v-layout>
-          </v-flex>
         </v-layout>
-      </v-card>
+    </v-flex>
+    <v-flex id="newspaperGraph" xs12 mb-5 pa-3>
+      <v-layout row wrap>
+        <v-flex xs12 sm2/>
+        <v-flex xs12 sm4>
+        <canvas id="myChart" width="300" height="300"/>
+        </v-flex>
+        <v-flex xs12 sm4 mt-5>
+          <v-chip v-for="idx in 6" :key="idx" color="red" outline style="margin:10px;"> <!--  임시 -->
+            # 블라블라
+          </v-chip>
+        </v-flex>
+      </v-layout>
     </v-flex>
     <v-flex class="posCenter" xs12 sm8 mb-5>
       <v-card id="newsComment">
@@ -32,7 +33,7 @@
           style="height: 35px !important; overflow: hidden;"
           >
           <v-list-tile-action>
-            <v-chip label color="white" text-color="blue">
+            <v-chip color="white" text-color="blue" label>
               <v-icon left>fas fa-thumbs-up</v-icon>긍정
             </v-chip>
           </v-list-tile-action>
@@ -70,9 +71,9 @@
 </v-layout>
 </template>
 <script>
-import Chart from 'chart.js';
+import Chart from "chart.js";
 export default {
-  name: "newsDetail",
+  name: "NewsDetail",
   data () {
     return {
       title: "조국 장관 취임 하루 만에 검찰개혁 시동",
@@ -117,87 +118,102 @@ export default {
             '#FE2E64'
           ]
         }]
+      },
+      options: {
+        maintainAspectRatio: false
       }
     });
   }
 }
 </script>
-<style scoped>
+<style>
 @import url("https://fonts.googleapis.com/css?family=Song+Myung&display=swap");
+@import url('https://fonts.googleapis.com/css?family=Noto+Serif+KR&display=swap');
 .posCenter {
   margin: 0 auto;
 }
+
 .commentPN {
   height: 35px !important;
   overflow: hidden;
 }
+
 .commentPage {
   text-align: center;
   margin-top: 20px;
 }
+
 #newsDetail {
-  background-color: #D8D8D8;
 }
+
 #newspaper {
   height: auto;
+  background-color: #00000000;
 }
+
 #newspaperTitle {
-  overflow: hidden;
   font-family: "Song Myung", serif;
-  font-size: 40px;
+  font-size: 50px;
   text-align: center;
 }
-#newspaperContent {
-  height: 400px;
-  overflow-y:scroll;
+
+#newspaperContent{
+  font-family: 'Noto Serif KR', serif;
+  overflow: ;
+  height: 600px;
 }
+
 #newspaperGraph {
   overflow: hidden;
   text-align: center;
 }
+
 ::-webkit-scrollbar {
   height: 100%;
 }
+
 ::-webkit-scrollbar-thumb {
   border-radius: 20px;
   height: 5px;
   background-color: #BDBDBD;
 }
+
 ::-webkit-scrollbar-thumb:hover {
   border-radius: 20px;
   height: 5px;
   background-color: #FACC2E;
 }
+
 ::-webkit-scrollbar-button {
   width: 20px;
   height: 10px;
 }
-::-webkit-scrollbar-button:vertical:increment {
-}
-::-webkit-scrollbar-button:vertical:decrement {
-}
-::-webkit-scrollbar-corner {
-  background-color: violet;
-}
-::-webkit-resizer {
-  background-color: green;
-}
+
 #newsComment {
   heigth: auto;
   min-height: 300px;
   padding: 20px;
 }
+
 #newsCommentPage i {
   transform: scale(0.6);
 }
+
 @media (max-width: 600px) {
   #myChart {
-    width: 70% !important;
-    height: 70% !important;
     margin: 0 auto;
   }
-  #newspaperGraph {
-    padding-top: 40px !important;
+
+  #newspaperTitle {
+    font-size: 35px;
+  }
+}
+
+@media (min-width: 600px) {
+  #newspaperContent{
+    column-count: 2 !important;
+    max-height: none;
+    overflow: visible;
   }
 }
 </style>
