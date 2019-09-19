@@ -66,12 +66,12 @@ def get_start_page_end_page():
 
     page = int(request.form.get("page"))
 
-    sql = "select count(*) as cnt from comments"
+    sql = "select count(*) as cnt from comments_train"
     cursor.execute(sql)
 
     cnt_comments = cursor.fetchone()["cnt"]
 
-    final_page = int(cnt_comments / 10)
+    final_page = int(cnt_comments / 100)
     start_page = page - 2
 
     if start_page <= 0:
@@ -98,7 +98,7 @@ def get_comments_page():
     page = int(request.form.get("page"))
     limit = (page - 1) * 100
 
-    sql = "select * from comments order by comment_num desc limit %s, 10"
+    sql = "select * from comments_train order by comment_num limit %s, 100"
     cursor.execute(sql, limit)
     result = cursor.fetchall()
 
@@ -115,7 +115,7 @@ def comment_push():
 
     # calc label
     label = load_logistic_mention(context)
-    sql = "insert into comments(context, label) values(%s, %s)"
+    sql = "insert into comments_train(context, label) values(%s, %s)"
     cursor.execute(sql, (context, label))
     db.commit()
 
@@ -137,7 +137,7 @@ def label_news_edit():
     else:
         label = 1
 
-    sql = "update comments set label_news =%s where comment_num=%s"
+    sql = "update comments_train set label_news =%s where comment_num=%s"
     cursor.execute(sql, (label, num))
     db.commit()
     return ""
@@ -157,7 +157,7 @@ def label_local_edit():
     else:
         label = 1
 
-    sql = "update comments set label_local =%s where comment_num=%s"
+    sql = "update comments_train set label_local =%s where comment_num=%s"
     cursor.execute(sql, (label, num))
     db.commit()
     return ""
@@ -171,7 +171,7 @@ def comment_del():
 
     num = request.form.get("num")
 
-    sql = "delete from comments where comment_num = %s"
+    sql = "delete from comments_train where comment_num = %s"
     cursor.execute(sql, num)
     db.commit()
 
