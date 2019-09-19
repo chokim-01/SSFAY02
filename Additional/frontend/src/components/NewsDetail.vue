@@ -10,7 +10,7 @@
               # 블라블라
             </v-chip>
           </v-flex>
-          <v-flex xs12 style="text-align:right">2019-09-18</v-flex>
+          <v-flex class="text-xs-right" xs12 px-4>2019-09-18 00:00:00</v-flex>
           <v-flex id="newspaperContent" xs12 pa-3>
             {{ content }}
           </v-flex>
