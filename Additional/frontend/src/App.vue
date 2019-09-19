@@ -1,15 +1,20 @@
 <template>
 <v-app>
   <v-content>
+    <app-header />
     <router-view />
   </v-content>
 </v-app>
 </template>
 
 <script>
+import mainHeader from "@/components/Header.vue";
+
 export default {
-  name: 'App',
-  components: {},
+  name: "App",
+  components: {
+    "app-header": mainHeader,
+  },
   data: () => ({
     //
   }),
@@ -18,7 +23,6 @@ export default {
 
 <style>
 .v-content__wrap {
-  background-color: #d2d2d2;
 }
 
 </style>
