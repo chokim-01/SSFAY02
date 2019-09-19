@@ -1,8 +1,11 @@
 import pandas as pd
 import numpy as np
+import tensorflow as tf
 import re
 import os
 
+from tqdm import tqdm
+from konlpy.tag import Okt
 from sklearn.model_selection import train_test_split
 from configs import DEFINES
 
@@ -39,34 +42,44 @@ class PreProcessing:
 		return answer
 
 
+	def data_tokenizer(self, data):
+		words = []
+		for sentence in data:
+			sentence = self.prepro_noise_canceling(sentence)
+			for word in sentence.split():
+				words.append(word)
+		return [word for word in words if word]
+
+
 	def load_voc(self):
 		# dictionary data
 		voc_list = []
 
 		# create dictionary
 		if (not (os.path.exists(DEFINES.vocabulary_path))):
-			# get data
-			data_frame = pd.read_csv("./data_in/ChatBotData.csv", sep=',').dropna()[["Q", "A", "label"]].values
-			question = data_frame[:, [0]]
-			answer = data_frame[:, [1]]
+			if (os.path.exists(DEFINES.data_path)):
+				# get data
+				data_frame = pd.read_csv("./data_in/ChatBotData.csv", encoding='utf-8')
+				question = list(data_frame["Q"])
+				answer = list(data_frame["A"])
 
-			data = []
-			data.extend(question)
-			data.extend(answer)
+				# if not tokenized
+				if DEFINES.xavier_initializer:
+					question = self.tokenizing_data(question)
+					answer = self.tokenizing_data(answer)
 
-			# normalization data
-			data = self.prepro_noise_canceling(data)
+				data = []
+				data.extend(question)
+				data.extend(answer)
 
-			# tokenization data
-			words = []
-			for idx in data:
-				words.extend(self.tokenizing_data(idx))
+				# tokenization data
+				words = self.data_tokenizer(data)
 
-			# removing duplicated
-			words = list(set(words))
+				# removing duplicated
+				words = list(set(words))
 
-			# set marker
-			words[:0] = self.MARKER
+				# set marker
+				words[:0] = self.MARKER
 
 			# create dictionary data
 			with open(DEFINES.vocabulary_path, 'w', encoding='utf-8') as voc_file:
@@ -79,36 +92,27 @@ class PreProcessing:
 				voc_list.append(line.rstrip('\n'))
 
 		# create dictionary
-		char_to_idx, idx_to_char = self.make_voc(voc_list)
+		char2idx, idx2char = self.make_voc(voc_list)
 
-		return char_to_idx, idx_to_char, len(voc_list)
+		return char2idx, idx2char, len(voc_list)
 
 
 	def make_voc(self, voc_list):
-		char_to_idx = {}
-		idx_to_char = {}
-
-		for idx in range(len(voc_list)):
-			word = voc_list[idx]
-			char_to_idx[word] = idx
-			idx_to_char[idx] = word
-
-		return char_to_idx, idx_to_char
+		char2idx = {word: idx for idx, word in enumerate(voc_list)}
+		idx2char = {idx: word for idx, word in enumerate(voc_list)}
+		print(char2idx)
+		return char2idx, idx2char
 
 
 	def dec_target_processing(self, value, dictionary):
-		"""
-		seq_input_index : index data
-		seq_len : length of sentence
-		"""
 		seq_input_index = []
-		seq_len = []
 
-		value = self.prepro_noise_canceling(value)
+		# tokenize
+		if DEFINES.xavier_initializer:
+			value = self.tokenizing_data(value)
 
+		print(len(value))
 		for seq in value:
-			seq_index = []
-
 			# remove length over tokens
 			seq_index = [dictionary[word] for word in seq.split()]
 
@@ -135,22 +139,12 @@ class PreProcessing:
 		seq_input_index = []
 		seq_len = []
 
-		# noise canceling
-		value = self.prepro_noise_canceling(value)
+		# tokenize
+		if DEFINES.xavier_initializer:
+			value = self.tokenizing_data(value)
 
 		for seq in value:
-			seq_index = []
-
-			for word in seq.split():
-				# add STD
-				seq_index = [dictionary[self.STD]]
-
-				if dictionary.get(word) is not None:
-					# extend dictionary index
-					seq_index.extend(dictionary[word])
-				else:
-					# extend UNK
-					seq_index.extend(dictionary[self.UNK])
+			seq_index = [dictionary[self.STD]] + [dictionary[word] for word in seq.split()]
 
 			# remove length over tokens
 			if len(seq_index) > DEFINES.max_sequence_length:
@@ -177,18 +171,18 @@ class PreProcessing:
 		seq_len = []
 
 		# noise canceling
-		value = self.prepro_noise_canceling(value)
+		if DEFINES.xavier_initializer:
+			value = self.tokenizing_data(value)
 
 		for seq in value:
 			seq_index = []
-
-			for word in seq.split():
+			for word in seq:
 				if dictionary.get(word) is not None:
 					# set word index
-					seq_index.extend(dictionary[word])
+					seq_index.append(dictionary[word])
 				else:
 					# word is none
-					seq_index.extend(dictionary[self.UNK])
+					seq_index.append(dictionary[self.UNK])
 
 			# remove length over token
 			if len(seq_index) > DEFINES.max_sequence_length:
@@ -204,47 +198,91 @@ class PreProcessing:
 		return np.asarray(seq_input_index), seq_len
 
 
-	def tokenizing_data(self, text):
-		# tokenized data
-		tokenized_data = []
+	def tokenizing_data(self, data):
+		morph_analyzer = Okt()
+		result_data = list()
+		for seq in tqdm(data):
+			seq = self.prepro_noise_canceling(seq)
+			morphlized_seq = " ".join(morph_analyzer.morphs(seq.replace(' ', '')))
+			result_data.append(morphlized_seq)
 
-		# text tokenization
-		str_split = text.split()
-		for word in str_split:
-			tokenized_data.append(word)
-
-		return tokenized_data
+		return result_data
 
 
-	def prepro_noise_canceling(self, data):
-		# result_data
-		noise_canceled_data = []
+	def prepro_noise_canceling(self, text):
 
 		# text normalization
-		for idx in range(len(data)):
-			noise_canceled_data.append(re.sub("[~.,!?\"':;)(]",'',data[idx][0]))
+		sentence = re.sub(re.compile("([~.,!?\"':;)(])"),"",str(text))
 
-		return noise_canceled_data
+
+		return sentence
 
 
 	def load_data(self):
 		# Get data
-		data_frame = pd.read_csv("./data_in/ChatBotData.csv", sep=',').dropna()[["Q", "A", "label"]].values
-
-		question = data_frame[:, [0]]
-		answer = data_frame[:, [1]]
+		data_frame = pd.read_csv("./data_in/ChatBotData.csv", header=0)
+		question = list(data_frame['Q'])
+		answer = list(data_frame['A'])
 
 		# split data using scikit-learn
-		train_q, train_a, test_q, test_a = train_test_split(question, answer, test_size=0.33)
+		train_q, test_q, train_a, test_a = train_test_split(question, answer, test_size=0.33, random_state=42)
 
 		return train_q, train_a, test_q, test_a
 
 
-def main():
+	def in_out_dict(self, input, output, target):
+		features = {"input": input, "output": output}
+		return features, target
+
+
+	def eval_input_fn(self, encode_train, decode_output_train, decode_target_train, batch_size):
+		# Make dataset splited each sentence
+		dataset = tf.data.Dataset.from_tensor_slices((encode_train, decode_output_train, decode_target_train))
+
+		# Shuffled whole dataset
+		dataset = dataset.shuffle(buffer_size=len(encode_train))
+
+		# Assert error, batch_size is not None
+		assert batch_size is not None, "train batchSize must not be None"
+
+		# Batch
+		dataset = dataset.batch(batch_size, drop_remainder=True)
+
+		dataset = dataset.map(self.in_out_dict)
+		dataset = dataset.repeat(1)
+
+		iterator = dataset.make_one_shot_iterator()
+
+		return iterator.get_next()
+
+
+	def train_input_fn(self, encode_train, decode_output_train, decode_target_train, batch_size):
+		# Make dataset splited each sentence
+		dataset = tf.data.Dataset.from_tensor_slices((encode_train, decode_output_train, decode_target_train))
+
+		# Shuffled whole dataset
+		dataset = dataset.shuffle(buffer_size=len(encode_train))
+
+		# Assert error, batch_size is not None
+		assert batch_size is not None, "train batchSize must not be None"
+
+		# Batch
+		dataset = dataset.batch(batch_size, drop_remainder=True)
+
+		dataset = dataset.map(self.in_out_dict)
+		dataset = dataset.repeat()
+
+		iterator = dataset.make_one_shot_iterator()
+
+		return iterator.get_next()
+
+
+def main(self):
 	data = PreProcessing()
 	char_to_idx, idx_to_char, voc_len = data.load_voc()
 
 
 
 if __name__ == '__main__':
-    main()
+	tf.logging.set_verbosity(tf.logging.INFO)
+	tf.app.run(main)
