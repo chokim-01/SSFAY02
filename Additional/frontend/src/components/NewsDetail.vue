@@ -5,7 +5,7 @@
           <v-flex id="newspaperTitle" xs12 my-4>
             {{ title }}
           </v-flex>
-          <v-flex  id="newspaperContent" xs12 pa-3>
+          <v-flex id="newspaperContent" xs12 pa-3>
             {{ content }}
           </v-flex>
         </v-layout>
@@ -143,9 +143,6 @@ export default {
   margin-top: 20px;
 }
 
-#newsDetail {
-}
-
 #newspaper {
   height: auto;
   background-color: #00000000;
@@ -159,8 +156,8 @@ export default {
 
 #newspaperContent{
   font-family: 'Noto Serif KR', serif;
-  overflow: ;
-  height: 600px;
+  overflow-y: scroll;
+  height: 520px;
 }
 
 #newspaperGraph {
@@ -176,17 +173,6 @@ export default {
   border-radius: 20px;
   height: 5px;
   background-color: #BDBDBD;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  border-radius: 20px;
-  height: 5px;
-  background-color: #FACC2E;
-}
-
-::-webkit-scrollbar-button {
-  width: 20px;
-  height: 10px;
 }
 
 #newsComment {
