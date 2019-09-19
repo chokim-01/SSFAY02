@@ -14,12 +14,12 @@ from configs import DEFINES
 DATA_OUT_PATH = './data_out/'
 
 # Req. 1-5-1. bleu score 계산 함수
-def bleu_compute():
+def bleu_compute(real_anwer, predic_anwer):
     
     return None
 
 # Req. 1-5-2. rouge score 계산 함수
-def rouge_compute():
+def rouge_compute(real_anwer, predic_anwer):
     
     return None
 
@@ -35,7 +35,8 @@ def main(self):
 
     # load train, test data
     train_q, train_a, test_q, test_a = processing_data.load_data()
-
+    print(len(train_q))
+    print(len(train_a))
     # train encoding / decoding
     train_input_enc, train_input_enc_length = processing_data.enc_processing(train_q, char2idx)
     train_input_dec, train_input_dec_length = processing_data.dec_input_processing(train_a, char2idx)
@@ -55,7 +56,7 @@ def main(self):
 
     # estimator
     classifier = tf.estimator.Estimator(
-        model_fn=ml.Model,
+        model_fn=ml.model,
         model_dir=DEFINES.check_point_path,
         params={
             'model_hidden_size': DEFINES.model_hidden_size,
@@ -66,14 +67,16 @@ def main(self):
             'embedding_size': DEFINES.embedding_size,
             'layer_size': DEFINES.layer_size,
             'max_sequence_length': DEFINES.max_sequence_length,
-            'xavier_initializer': DEFINES.xavier_initializer
+            'xavier_initializer': DEFINES.xavier_initializer,
+            'embedding': DEFINES.embedding,
+            'multilayer': DEFINES.multilayer
         })
 
     # 학습 실행
-    classifier.train(input_fn=lambda: data.train_input_fn(
+    classifier.train(input_fn=lambda: processing_data.train_input_fn(
         train_input_enc, train_input_dec, train_target_dec, DEFINES.batch_size), steps=DEFINES.train_steps)
 
-    eval_result = classifier.evaluate(input_fn=lambda: data.eval_input_fn(
+    eval_result = classifier.evaluate(input_fn=lambda: processing_data.eval_input_fn(
         eval_input_enc, eval_input_dec, eval_target_dec, DEFINES.batch_size))
 
     print('\nEVAL set accuracy: {accuracy:0.3f}\n'.format(**eval_result))
@@ -92,8 +95,8 @@ def main(self):
     # 예측한 값을 인지 할 수 있도록
     # 텍스트로 변경하는 부분이다.
     print("answer: ", answer)
-    print("Bleu score: ", bleu_compute("그 사람도 그럴 거예요.", answer))
-    print("Rouge score: ", rouge_compute("그 사람도 그럴 거예요.", answer))
+    # print("Bleu score: ", bleu_compute("그 사람도 그럴 거예요.", answer))
+    # print("Rouge score: ", rouge_compute("그 사람도 그럴 거예요.", answer))
 
 
 if __name__ == '__main__':

@@ -42,10 +42,10 @@ def model(features, labels, mode, params):
         # 값이 True이면 멀티레이어로 모델을 구성하고 False이면 
         # 단일레이어로 모델 구성
         if params['multilayer'] == True:
-            encoder_cell_list = [make_lstm_cell(mode, params['hidden_size'], i) for i in range(params['layer_size'])]
+            encoder_cell_list = [make_lstm_cell(mode, params['model_hidden_size'], i) for i in range(params['layer_size'])]
             rnn_cell = tf.contrib.rnn.MultiRNNCell(encoder_cell_list)
         else:
-            rnn_cell = make_lstm_cell(mode, params['hidden_size'], "")
+            rnn_cell = make_lstm_cell(mode, params['model_hidden_size'], "")
         
         # rnn_cell에 의해 지정된 dynamic_rnn으로 반복적인 신경망 생성
         # encoder_states 최종 상태  [batch_size, cell.state_size]
@@ -55,10 +55,10 @@ def model(features, labels, mode, params):
 
     with tf.variable_scope('decoder_scope', reuse=tf.AUTO_REUSE):
         if params['multilayer'] == True:
-            decoder_cell_list = [make_lstm_cell(mode, params['hidden_size'], i) for i in range(params['layer_size'])]
+            decoder_cell_list = [make_lstm_cell(mode, params['model_hidden_size'], i) for i in range(params['layer_size'])]
             rnn_cell = tf.contrib.rnn.MultiRNNCell(decoder_cell_list)
         else:
-            rnn_cell = make_lstm_cell(mode, params['hidden_size'], "")
+            rnn_cell = make_lstm_cell(mode, params['model_hidden_size'], "")
 
         decoder_initial_state = encoder_states
         decoder_outputs, decoder_states = tf.nn.dynamic_rnn(cell=rnn_cell, # RNN 셀
