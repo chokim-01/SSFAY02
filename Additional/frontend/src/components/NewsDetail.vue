@@ -1,10 +1,16 @@
 <template>
   <v-layout row wrap>
-    <v-flex class="posCenter" xs12 sm9 mb-5>
+    <v-flex class="posCenter" xs12 sm8 mb-2>
         <v-layout row wrap pb-4>
-          <v-flex id="newspaperTitle" xs12 my-4>
+          <v-flex id="newspaperTitle" xs12 >
             {{ title }}
           </v-flex>
+          <v-flex xs12 style="text-align: center;" mb-4>
+            <v-chip v-for="idx in 6" :key="idx" color="red" outline style="margin:10px;"> <!--  임시 -->
+              # 블라블라
+            </v-chip>
+          </v-flex>
+          <v-flex xs12 style="text-align:right">2019-09-18</v-flex>
           <v-flex id="newspaperContent" xs12 pa-3>
             {{ content }}
           </v-flex>
@@ -12,64 +18,56 @@
     </v-flex>
     <v-flex id="newspaperGraph" xs12 mb-5 pa-3>
       <v-layout row wrap>
-        <v-flex xs12 sm2/>
-        <v-flex xs12 sm4>
-        <canvas id="myChart" width="300" height="300"/>
+        <v-flex xs12 sm1/>
+        <v-flex xs12 sm5>
+          <canvas id="PNChart" width="300" height="300"/>
         </v-flex>
         <v-flex xs12 sm4 mt-5>
-          <v-chip v-for="idx in 6" :key="idx" color="red" outline style="margin:10px;"> <!--  임시 -->
-            # 블라블라
-          </v-chip>
+          <canvas id="TimeChart" width="300" height="300"/>
         </v-flex>
       </v-layout>
     </v-flex>
     <v-flex class="posCenter" xs12 sm8 mb-5>
-      <v-card id="newsComment">
+      <v-card id="newsComment" flat>
         <h2>댓글 111개</h2>
         <v-list>
-          <v-list-tile
-          v-for="tmpIdx in 5"
-          :key="tmpIdx+'key'"
-          style="height: 35px !important; overflow: hidden;"
-          >
-          <v-list-tile-action>
-            <v-chip color="white" text-color="blue" label>
-              <v-icon left>fas fa-thumbs-up</v-icon>긍정
-            </v-chip>
-          </v-list-tile-action>
-          <v-list-tile-content>
-            <v-list-tile-title v-text="tmp_comment"></v-list-tile-title>
-          </v-list-tile-content>
-        </v-list-tile>
-        <v-list-tile
-        class="commentPN"
-        v-for="index in 5"
-        :key="index"
-        >
-        <v-list-tile-action>
-          <v-chip label color="white" text-color="red">
-            <v-icon left>fas fa-thumbs-down</v-icon>부정
-          </v-chip>
-        </v-list-tile-action>
-        <v-list-tile-content>
-          <v-list-tile-title v-text="tmp_comment"></v-list-tile-title>
-        </v-list-tile-content>
-      </v-list-tile>
-    </v-list>
-    <div class="commentPage">
-      <v-pagination
-      id="newsCommentPage"
-      v-model="commentPage"
-      :length="6"
-      color="blue"
-      prev-icon="fas fa-chevron-left"
-      next-icon="fas fa-chevron-right"
-      ></v-pagination>
-    </div>
-  </v-card>
-</v-flex>
-</v-layout>
+          <template v-for="tmpIdx in 5"
+          style="height: 35px !important; overflow: hidden;">
+              <v-layout :key="tmpIdx+'key'" row wrap style="min-height: 50px;">
+                <v-flex class="newsCommentRow" xs12 sm2><b>2019-09-19</b></v-flex>
+                <v-flex class="newsCommentRow" v-text="tmp_comment" xs10 sm9></v-flex>
+                <v-flex xs2 sm1><v-chip color="white" text-color="blue" label>
+                  <v-icon left>fas fa-thumbs-up</v-icon>
+                  <v-flex hidden-xs-only>긍정</v-flex>
+                </v-chip></v-flex>
+              </v-layout>
+              <v-divider />
+              <v-layout :key="tmpIdx+'key2'" row wrap style="min-height: 50px;">
+                <v-flex class="newsCommentRow" xs12 sm2><b>2019-09-19</b></v-flex>
+                <v-flex class="newsCommentRow" v-text="tmp_comment" xs10 sm9></v-flex>
+                <v-flex xs2 sm1><v-chip color="white" text-color="red" label>
+                  <v-icon left>fas fa-thumbs-down</v-icon>
+                  <v-flex hidden-xs-only>부정</v-flex>
+                </v-chip></v-flex>
+              </v-layout>
+            <v-divider />
+          </template>
+        </v-list>
+        <div class="commentPage">
+          <v-pagination
+          id="newsCommentPage"
+          v-model="commentPage"
+          :length="5"
+          color="blue"
+          prev-icon="fas fa-chevron-left"
+          next-icon="fas fa-chevron-right"
+          ></v-pagination>
+        </div>
+      </v-card>
+    </v-flex>
+  </v-layout>
 </template>
+
 <script>
 import Chart from "chart.js";
 export default {
@@ -105,7 +103,7 @@ export default {
     }
   },
   mounted() {
-    var ctx = document.getElementById('myChart');
+    var ctx = document.getElementById('PNChart');
     var myChart = new Chart(ctx, {
       type: 'doughnut',
       data: {
@@ -123,10 +121,39 @@ export default {
         maintainAspectRatio: false
       }
     });
+
+    var ctx2 = document.getElementById('TimeChart').getContext('2d');
+    var chart = new Chart(ctx2, {
+    type: 'line',
+    data: {
+            labels: ["12am", "1am", "2am", "3am", "4am", "5am", "6am", "7am", "8am", "9am", "10am", "11am", "12am"],
+            datasets: [{
+                label: '시간대별 댓글 작성 추이',
+                data: [20000, 14000, 12000, 15000, 18000, 19000, 22000,20000, 14000, 12000, 15000, 18000, 19000, 22000],
+                borderColor: '#FA5882',
+                backgroundColor: '#00000000',
+                type: 'line',
+                pointRadius: 0,
+					fill: false,
+					lineTension: 0,
+					borderWidth: 2
+            }]
+        },
+        options: {
+            scales: {
+                yAxes: [{
+                    ticks: {
+                    /*    beginAtZero: true, */
+                    }
+                }]
+            }
+        },
+});
+
   }
 }
 </script>
-<style>
+<style scoped>
 @import url("https://fonts.googleapis.com/css?family=Song+Myung&display=swap");
 @import url('https://fonts.googleapis.com/css?family=Noto+Serif+KR&display=swap');
 .posCenter {
@@ -165,6 +192,15 @@ export default {
   text-align: center;
 }
 
+#PNChart {
+  margin: 0 auto;
+  margin-top: 30px;
+}
+
+#PNChart, #TimeChart {
+  max-height: 300px;
+}
+
 ::-webkit-scrollbar {
   height: 100%;
 }
@@ -179,26 +215,41 @@ export default {
   heigth: auto;
   min-height: 300px;
   padding: 20px;
+  background-color: #00000000;
 }
 
-#newsCommentPage i {
-  transform: scale(0.6);
+.newsCommentRow {
+  padding:12px 0px;
+}
+
+#newsComment * {
+  background-color: inherit !important;
+}
+
+.theme--light.v-pagination .v-pagination__item--active {
+    color: black !important;
+    border: 1px solid blue !important;
 }
 
 @media (max-width: 600px) {
-  #myChart {
-    margin: 0 auto;
-  }
-
   #newspaperTitle {
     font-size: 35px;
+  }
+
+  #newsComment .v-list__tile {
+    padding: 0px 0px !important;
   }
 }
 
 @media (min-width: 600px) {
+  #PNChart {
+    margin-left: 8%;
+  }
+
   #newspaperContent{
     column-count: 2 !important;
     max-height: none;
+    height: auto;
     overflow: visible;
   }
 }
