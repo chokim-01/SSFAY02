@@ -22,7 +22,8 @@ export default {
 </script>
 
 <style>
-.v-content__wrap {
+#newsCommentPage i {
+  transform: scale(0.6);
 }
 
 </style>
