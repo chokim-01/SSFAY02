@@ -38,9 +38,14 @@ class PreProcessing:
 		dataset = dataset.batch(batch_size, drop_remainder=True)
 
 		dataset = dataset.map(self.in_out_dict)
+
+		print(dataset)
+
 		dataset = dataset.repeat(1)
 
 		iterator = dataset.make_one_shot_iterator()
+
+		print("vvv", iterator.get_next())
 
 		return iterator.get_next()
 
@@ -67,8 +72,9 @@ class PreProcessing:
 	def pred_next_string(self, message, idx2voca_dictionary):
 		message_string = []
 
-		for msg in message:
-			message_string = [idx2voca_dictionary[index] for index in msg['indexs']]
+		indexs = list(message)[0]
+		print(indexs)
+		#message_string = [idx2voca_dictionary[index] for index in list(message)[0]["indexs"]]
 
 		answer = ""
 
@@ -174,6 +180,7 @@ class PreProcessing:
 			msg_index += (DEFINES.max_sequence_length - len(msg_index)) * [voca2idx_dictionary[self.PAD]]
 			message_output_index.append(msg_index)
 
+		print("dec", message_output_index)
 		return np.asarray(message_output_index), message_output_length
 
 	def enc_processing(self, message, voca2idx_dictionary):
@@ -276,3 +283,8 @@ class PreProcessing:
 			train_test_split(question, answer, test_size=0.33, random_state=42)
 
 		return question_train, question_test, answer_train, answer_test
+
+if __name__ == '__main__':
+	tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
+	pre_processing = PreProcessing()
+	tf.compat.v1.app.run(pre_processing)
