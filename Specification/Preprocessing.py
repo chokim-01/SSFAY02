@@ -1,4 +1,5 @@
 import re
+import pickle
 import numpy as np
 import pandas as pd
 import tensorflow as tf
@@ -30,16 +31,29 @@ def load_data():
     :return: question train, question test, answer train, answer test data
     """
 
-    # Load Chatbot data
-    data_frame = pd.read_csv(DEFINES.chatbot_data_path, header=0)
+    if not exists_file("./Data/question_and_answer.dat"):
+        # Load Chatbot data
+        data_frame = pd.read_csv(DEFINES.chatbot_data_path, header=0)
 
-    # Get question and answer data
-    question = data_frame["Q"]
-    answer = data_frame["A"]
+        # Get question and answer data
+        question = data_frame["Q"]
+        answer = data_frame["A"]
 
-    # question and answer data splited
-    question_train, answer_train, question_test, answer_test\
-        = train_test_split(question, answer, test_size=0.33, random_state=42)
+        # question and answer data splited
+        question_train, answer_train, question_test, answer_test\
+            = train_test_split(question, answer, test_size=0.33, random_state=42)
+
+        with open("./Data/question_and_answer.data", "wb") as file:
+            pickle.dump([question_train, question_test, answer_train, answer_test], file)
+
+    else:
+        with open("./Data/question_and_answer.data", "r") as file:
+            question_and_answer = pickle.load(file)
+
+        question_train = question_and_answer[0]
+        question_test = question_and_answer[1]
+        answer_train = question_and_answer[2]
+        answer_test = question_and_answer[3]
 
     return question_train, question_test, answer_train, answer_test
 
@@ -288,7 +302,7 @@ def eval_input_fn(encode_predict, decode_predict, decode_target_predict, batch_s
     dataset = dataset.map(re_arrange)
 
     # This function is predict test so, repeat 1
-    dataset = dataset.repreat(1)
+    dataset = dataset.repeat(1)
 
     one_shot_iterator = dataset.make_one_shot_iterator()
 
@@ -319,5 +333,5 @@ def main(self):
 
 
 if __name__ == '__main__':
-    tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
-    tf.compat.v1.app.run(main)
+    tf.logging.set_verbosity(tf.logging.INFO)
+    tf.app.run(main)

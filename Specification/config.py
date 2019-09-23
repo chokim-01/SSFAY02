@@ -19,7 +19,7 @@ tf.app.flags.DEFINE_integer("max_sentence_length", 25, "max sentence length")
 tf.app.flags.DEFINE_integer("hidden_size", 128, "weights size")
 
 # Layer size
-tf.app.flags.DEFINE_integer("layer_size", 3, "layer size")
+tf.app.flags.DEFINE_integer("layer_size", 4, "layer size")
 
 # Learning rate
 tf.app.flags.DEFINE_float("learning_rate", 1e-3, "learning rate")
@@ -37,7 +37,10 @@ tf.app.flags.DEFINE_boolean("multilayer", True, "Use Multi RNN Cell")
 tf.app.flags.DEFINE_integer("train_steps", 20000, "train steps")
 
 # Batch size
-tf.app.flags.DEFINE_integer('batch_size', 64, 'batch size')
+tf.app.flags.DEFINE_integer('batch_size', 16, 'batch size')
+
+# Multi head size
+tf.app.flags.DEFINE_integer('attention_head_size', 4, 'attn head size')
 
 # Dropout width
 tf.app.flags.DEFINE_float('dropout_width', 0.5, 'dropout width')
