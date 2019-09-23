@@ -1,7 +1,9 @@
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 import pymysql
 
 app = Flask(__name__)
+CORS(app)
 
 
 @app.route("/api/chat", methods=['POST'])
@@ -20,7 +22,7 @@ def chat_test():
 
 @app.route("/", methods=['GET'])
 def test():
-    print(1)
+    print("1")
 
 
 def main():
