@@ -21,8 +21,8 @@
             <v-flex xs12 sm4>
               <v-btn class="headerBtn" to="/" flat> News </v-btn>
               <v-btn class="headerBtn" to="AboutUs" flat> About Us </v-btn>
-              <v-icon class="chatbotIcon" @click.stop="menu = !menu">far fa-comment-dots</v-icon>
-              <v-menu class="chat" v-model="menu" :close-on-content-click="false" :nudge-width="200" offset-y>
+              <v-icon class="chatbotIcon" @click.stop="chk_view = !chk_view">far fa-comment-dots</v-icon>
+              <v-menu class="chat" v-model="chk_view" :close-on-content-click="false" :nudge-width="200" offset-y>
                 <template v-slot:activator="{ on }"></template>
 
                 <v-card>
@@ -43,9 +43,12 @@
 
 <script>
 import axios from "axios";
+import Server from "../server.js"
+import {store} from "../store.js"
 
 export default {
   name: 'Header',
+  store,
   components: {
   },
   data() {
@@ -53,7 +56,7 @@ export default {
       NowPage: "AboutUs",
       newsTitle : ["1. 나는 사람이다.", "2. 자소서 쓰기 싫어요!", "3. 오늘은 9월 16일", "4. 가나다라가나다라가나다라가나다라가나다라가나다라가나다라"],
       searchKey : "",
-      menu: false,
+      chk_view: false,
       text: "",
     }
   },
@@ -85,16 +88,14 @@ export default {
       form.append('msg', this.text)
 
       // chatbot comment
-      axios.post("http://localhost:5000/api/chat", form)
-          .then(res => {
-
-            select.innerHTML += "<p class='arrow_box_left'>" + JSON.stringify(res.data[0]["value"]) + "</p>"
-          }).catch(error => {
-            console.log(error)
-          }).then(()=>{
-            select.scrollTop = select.scrollHeight
-            document.querySelector('.chattext').value = ''
-          })
+      Server(this.$store.state.SERVER_URL).post("/api/chat", form).then(res => {
+        select.innerHTML += "<p class='arrow_box_left'>" + JSON.stringify(res.data[0]["value"]) + "</p>"
+      }).catch(error => {
+        console.log(error)
+      }).then(()=>{
+        select.scrollTop = select.scrollHeight
+        document.querySelector('.chattext').value = ''
+      })
 
       this.text = ""
     }
