@@ -9,7 +9,7 @@ def load_data():
         news_data = pickle.load(news_data)
 
     news_len = len(news_data)
-    print(news_len)
+
     news_d = [[_ for _ in range(4)] for _ in range(news_len)]
 
     # Count of Deduplication
@@ -21,7 +21,6 @@ def load_data():
 
         for i in range(idx):
             if news_data[idx][0] == news_d[i][0]:
-                print(news_data[idx][0])
                 flag = True
                 blank_count += 1
                 break
@@ -29,28 +28,33 @@ def load_data():
         if flag:
             continue
 
-        news_d[input_count] = news_data[input_count]
+        news_d[input_count] = news_data[idx]
         input_count += 1
 
-    for i in news_d:
-        if i[0] == 11086156:
-            print("123")
-    news_d = news_d[:news_len-blank_count]
+    news_d = news_d[:input_count]
 
     # Get comment data
     with open('../../crawling/comment_data.clf', 'rb') as comments:
         comments_data = pickle.load(comments)
+    
+    comments_len = len(comments_data)
+
+    # Comment data formmatting
+    for cmt_idx in range(comments_len):
+        comments_data[cmt_idx].append(int(0))
+        comments_data[cmt_idx].append(int(0))
+        comments_data[cmt_idx][0] = int(comments_data[cmt_idx][0])
+
 
     return news_d, comments_data
 
 
 # Add News test case to DB
 def add_news(news_data):
-
     db = conn.db()
     cursor = db.cursor()
 
-    sql = "insert into News (news_num, news_title, news_context, news_date) values(%s, %s, %s, %s)"
+    sql = "insert into news (news_num, news_title, news_context, news_date) values(%s, %s, %s, %s)"
     cursor.executemany(sql, news_data)
     db.commit()
 
@@ -59,18 +63,11 @@ def add_news(news_data):
 
 # Add comment case to DB
 def add_comment(comments_data):
-
     db = conn.db()
     cursor = db.cursor()
 
-    cnt = 0
-    for comment in comments_data:
-        comment.append(0)
-        comment.append(0)
-        cnt += 1
-
     sql = "insert into comments(news_num, comment_context, comment_time," \
-          " label_news, label_local) values (%s, %s, %s, %s)"
+          " label_news, label_local) values (%s, %s, %s, %s, %s)"
 
     cursor.executemany(sql, comments_data)
     db.commit()
@@ -80,7 +77,7 @@ def add_comment(comments_data):
 
 def add_testcase():
     news_data, comments_data = load_data()
-    add_news(news_data)
+    # add_news(news_data)
     add_comment(comments_data)
 
     return

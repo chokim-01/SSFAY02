@@ -1,5 +1,6 @@
 <template>
 <v-app>
+  <app-header />
   <v-content>
     <router-view />
   </v-content>
@@ -7,18 +8,19 @@
 </template>
 
 <script>
+import mainHeader from "@/components/Header.vue";
+
 export default {
-  name: 'App',
-  components: {},
-  data: () => ({
-    //
-  }),
+  name: "App",
+  components: {
+    "app-header": mainHeader,
+  }
 };
 </script>
 
 <style>
-.v-content__wrap {
-  background-color: #d2d2d2;
+#newsCommentPage i {
+  transform: scale(0.6);
 }
 
 </style>
