@@ -51,6 +51,7 @@ export default {
     },
     SearchNews() {
       console.log(this.searchKey);
+      this.$store.state.searchKey = this.searchKey;
       this.searchKey = "";
     }
   }
