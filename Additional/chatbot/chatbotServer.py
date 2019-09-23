@@ -14,9 +14,13 @@ def chat_test():
     cursor.execute(sql, msg)
 
     rows = cursor.fetchall()
+    conn.close()
     return jsonify(rows)
 
-    conn.close()
+
+@app.route("/", methods=['GET'])
+def test():
+    print(1)
 
 
 def main():
