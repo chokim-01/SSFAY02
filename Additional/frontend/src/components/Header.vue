@@ -22,7 +22,7 @@
               <v-btn class="headerBtn" to="/" flat> News </v-btn>
               <v-btn class="headerBtn" to="AboutUs" flat> About Us </v-btn>
               <v-icon class="chatbotIcon" @click.stop="menu = !menu">far fa-comment-dots</v-icon>
-              <v-menu class="d" v-model="menu" :close-on-content-click="false" :nudge-width="200" offset-y>
+              <v-menu class="chat" v-model="menu" :close-on-content-click="false" :nudge-width="200" offset-y>
                 <template v-slot:activator="{ on }"></template>
 
                 <v-card>
@@ -62,10 +62,12 @@ export default {
     MovePage(location) {
       this.NowPage = location;
     },
+
     SearchNews() {
       console.log(this.searchKey);
       this.searchKey = "";
     },
+
     enter(){
       if(this.check){
         this.check = !this.check
@@ -73,17 +75,25 @@ export default {
       }
 
       this.check = !this.check
-      var select = document.querySelector('.chatbox')
-      select.innerHTML += "<p class='arrow_box'>"+ this.text +"</p></br>"
-      select.scrollTop = select.scrollHeight;
 
-      axios.get("http://localhost:5000/")
-          .then(() => {
-            // if(response == 1) {
-            //   this.showSignUpConfirmAlert('회원가입 성공!','success')
-            // }else {
-            //   this.showErrorAlert(response)
-            // }
+      // user comment
+      var select = document.querySelector('.chatbox')
+      select.innerHTML += "<p class='arrow_box_right'>"+ this.text +"</p></br>"
+
+      // form data
+      var form = new FormData()
+      form.append('msg', this.text)
+
+      // chatbot comment
+      axios.post("http://localhost:5000/api/chat", form)
+          .then(res => {
+
+            select.innerHTML += "<p class='arrow_box_left'>" + JSON.stringify(res.data[0]["value"]) + "</p>"
+          }).catch(error => {
+            console.log(error)
+          }).then(()=>{
+            select.scrollTop = select.scrollHeight
+            document.querySelector('.chattext').value = ''
           })
 
       this.text = ""
@@ -159,7 +169,7 @@ export default {
   overflow-y:scroll;
 }
 
-.d {
+.chat {
   width: 15%;
   margin: auto;
 }
