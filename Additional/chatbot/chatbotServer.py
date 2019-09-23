@@ -11,18 +11,12 @@ def chat_test():
     msg = request.form.get("msg")
     conn = pymysql.connect(host='localhost', user='root', password='1234', db='testdb', charset='utf8')
     cursor = conn.cursor(pymysql.cursors.DictCursor)
-
     sql = "select * from chatbot where msg = %s"
-    cursor.execute(sql, msg)
 
+    cursor.execute(sql, msg)
     rows = cursor.fetchall()
     conn.close()
     return jsonify(rows)
-
-
-@app.route("/", methods=['GET'])
-def test():
-    print("1")
 
 
 def main():
