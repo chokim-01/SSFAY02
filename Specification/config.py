@@ -34,7 +34,7 @@ tf.app.flags.DEFINE_boolean("embedding", True, "Use Embedding flag")
 tf.app.flags.DEFINE_boolean("multilayer", True, "Use Multi RNN Cell")
 
 # Train step
-tf.app.flags.DEFINE_integer("train_steps", 20000, "train steps")
+tf.app.flags.DEFINE_integer("train_steps", 50000, "train steps")
 
 # Batch size
 tf.app.flags.DEFINE_integer('batch_size', 16, 'batch size')
