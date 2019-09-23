@@ -2,7 +2,7 @@
 import tensorflow as tf
 
 tf.app.flags.DEFINE_integer('batch_size', 64, 'batch size')  # 배치 크기
-tf.app.flags.DEFINE_integer('train_steps', 20000, 'train steps')  # 학습 에포크
+tf.app.flags.DEFINE_integer('train_steps', 200, 'train steps')  # 학습 에포크
 tf.app.flags.DEFINE_float('dropout_width', 0.5, 'dropout width')  # 드롭아웃 크기
 tf.app.flags.DEFINE_integer('embedding_size', 128, 'embedding size')  # 가중치 크기
 tf.app.flags.DEFINE_float('learning_rate', 1e-3, 'learning rate')  # 학습률
