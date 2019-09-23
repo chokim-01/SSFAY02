@@ -23,7 +23,6 @@ def main(self):
     decode_target_question_test = Preprocessing.decode_target_processing(question_test, voca2idx)
     print("[+] Encode and decode train data complete")
 
-
     # Encode and decode test data
     encode_answer_train = Preprocessing.encode_processing(answer_train, voca2idx)
     decode_answer_test = Preprocessing.decode_processing(answer_test, voca2idx)
@@ -31,8 +30,8 @@ def main(self):
     print("[+] Encode and decode test data complete")
 
     # Make check point directory
-    check_point_path = os.path.join(os.getcwd(), DEFINES.check_point_path)
-    os.makedirs(check_point_path, exist_ok=True)
+    #check_point_path = os.path.join(os.getcwd(), DEFINES.check_point_path)
+    #os.makedirs(check_point_path, exist_ok=True)
 
     # Make Estimator
     classifier = tf.estimator.Estimator(
@@ -45,7 +44,8 @@ def main(self):
             "vocabulary_length": vocabulary_length,
             "embedding_size": DEFINES.embedding_size,
             "embedding": DEFINES.embedding,
-            "multilayer": DEFINES.multilayer
+            "multilayer": DEFINES.multilayer,
+            "tokenize_morpheme_flag": DEFINES.tokenize_morpheme_flag
         }
     )
 
@@ -58,7 +58,7 @@ def main(self):
     answer_result = classifier.evaluate(input_fn=lambda:Preprocessing.eval_input_fn(
         encode_answer_train, decode_answer_test, decode_target_answer_test,  DEFINES.batch_size))
 
-    print("\n [+] Predict accuracy: {accuracy: 0.3f}\n".format(**answer_result))
+
 
     # Make predict data
     encode_predict_train = Preprocessing.encode_processing(["가끔 궁금해"], voca2idx)
@@ -73,8 +73,9 @@ def main(self):
     result_sentence = Preprocessing.predict_to_sentence(predictions, idx2voca)
 
     print(result_sentence)
+    print("\n [+] Predict accuracy: {accuracy: 0.6f}\n".format(**answer_result))
 
 
 if __name__ == '__main__':
-    tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
-    tf.compat.v1.app.run(main)
+    tf.logging.set_verbosity(tf.logging.INFO)
+    tf.app.run(main)
