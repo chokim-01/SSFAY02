@@ -32,17 +32,17 @@ def main(self):
 
     # char_to_idx, idx_to_char dictionary and length of voc_list
     char2idx, idx2char, vocabulary_length = processing_data.load_voc()
-
+    print("load_voc")
     # load train, test data
     train_q, train_a, test_q, test_a = processing_data.load_data()
-    print(len(train_q))
-    print(len(train_a))
+    print("load_data")
     # train encoding / decoding
     train_input_enc, train_input_enc_length = processing_data.enc_processing(train_q, char2idx)
     train_input_dec, train_input_dec_length = processing_data.dec_input_processing(train_a, char2idx)
 
     # train decoding output
     train_target_dec = processing_data.dec_target_processing(train_a, char2idx)
+    print("train encoding/decoding")
 
     # test encoding / decoding
     eval_input_enc, eval_input_enc_length = processing_data.enc_processing(test_q, char2idx)
@@ -50,6 +50,7 @@ def main(self):
 
     # test decoding output
     eval_target_dec = processing_data.dec_target_processing(test_a, char2idx)
+    print("test encoding/decoding")
 
     check_point_path = os.path.join(os.getcwd(), DEFINES.check_point_path)
     os.makedirs(check_point_path, exist_ok=True)
@@ -88,9 +89,9 @@ def main(self):
     predic_target_dec = processing_data.dec_target_processing([""], char2idx)
 
     predictions = classifier.predict(
-        input_fn=lambda: data.eval_input_fn(predic_input_enc, predic_input_dec, predic_target_dec, 1))
+        input_fn=lambda: processing_data.eval_input_fn(predic_input_enc, predic_input_dec, predic_target_dec, DEFINES.batch_size))
 
-    answer, finished = data.pred_next_string(predictions, idx2char)
+    answer, finished = processing_data.pred_next_string(predictions, idx2char)
 
     # 예측한 값을 인지 할 수 있도록
     # 텍스트로 변경하는 부분이다.

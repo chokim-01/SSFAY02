@@ -28,9 +28,10 @@ class PreProcessing:
 
 	def pred_next_string(self, value, dictionary):
 		sentence = []
+		indexs = list(value)[0]
 		for text in  value:
 			# change to word in dictionary
-			sentence = [ dictionary[index] for index in text['indexs']]
+			sentence = [ dictionary[index] for index in text["indexs"]]
 
 		answer = ""
 		# make answer
@@ -65,8 +66,8 @@ class PreProcessing:
 
 				# if not tokenized
 				if DEFINES.xavier_initializer:
-					question = self.tokenizing_data(question)
-					answer = self.tokenizing_data(answer)
+					question = self.prepro_like_morphlized(question)
+					answer = self.prepro_like_morphlized(answer)
 
 				data = []
 				data.extend(question)
@@ -89,7 +90,7 @@ class PreProcessing:
 		# read voc file and save voc_list
 		with open(DEFINES.vocabulary_path, 'r', encoding='utf-8') as voc_file:
 			for line in voc_file:
-				voc_list.append(line.rstrip('\n'))
+				voc_list.append(line.strip())
 
 		# create dictionary
 		char2idx, idx2char = self.make_voc(voc_list)
@@ -100,7 +101,6 @@ class PreProcessing:
 	def make_voc(self, voc_list):
 		char2idx = {word: idx for idx, word in enumerate(voc_list)}
 		idx2char = {idx: word for idx, word in enumerate(voc_list)}
-		print(char2idx)
 		return char2idx, idx2char
 
 
@@ -109,11 +109,11 @@ class PreProcessing:
 
 		# tokenize
 		if DEFINES.xavier_initializer:
-			value = self.tokenizing_data(value)
+			value = self.prepro_like_morphlized(value)
 
-		print(len(value))
 		for seq in value:
 			# remove length over tokens
+			seq = self.prepro_noise_canceling(seq)
 			seq_index = [dictionary[word] for word in seq.split()]
 
 			# add end tokens
@@ -141,9 +141,10 @@ class PreProcessing:
 
 		# tokenize
 		if DEFINES.xavier_initializer:
-			value = self.tokenizing_data(value)
+			value = self.prepro_like_morphlized(value)
 
 		for seq in value:
+			seq = self.prepro_noise_canceling(seq)
 			seq_index = [dictionary[self.STD]] + [dictionary[word] for word in seq.split()]
 
 			# remove length over tokens
@@ -172,17 +173,18 @@ class PreProcessing:
 
 		# noise canceling
 		if DEFINES.xavier_initializer:
-			value = self.tokenizing_data(value)
+			value = self.prepro_like_morphlized(value)
 
 		for seq in value:
+			seq = self.prepro_noise_canceling(seq)
 			seq_index = []
-			for word in seq:
+			for word in seq.split():
 				if dictionary.get(word) is not None:
 					# set word index
-					seq_index.append(dictionary[word])
+					seq_index.extend([dictionary[word]])
 				else:
 					# word is none
-					seq_index.append(dictionary[self.UNK])
+					seq_index.extend([dictionary[self.UNK]])
 
 			# remove length over token
 			if len(seq_index) > DEFINES.max_sequence_length:
@@ -198,11 +200,10 @@ class PreProcessing:
 		return np.asarray(seq_input_index), seq_len
 
 
-	def tokenizing_data(self, data):
+	def prepro_like_morphlized(self, data):
 		morph_analyzer = Okt()
 		result_data = list()
 		for seq in tqdm(data):
-			seq = self.prepro_noise_canceling(seq)
 			morphlized_seq = " ".join(morph_analyzer.morphs(seq.replace(' ', '')))
 			result_data.append(morphlized_seq)
 
@@ -212,7 +213,7 @@ class PreProcessing:
 	def prepro_noise_canceling(self, text):
 
 		# text normalization
-		sentence = re.sub(re.compile("([~.,!?\"':;)(])"),"",str(text))
+		sentence = re.sub("([~.,!?\"':;)(])","",text)
 
 
 		return sentence
@@ -238,7 +239,6 @@ class PreProcessing:
 	def eval_input_fn(self, encode_train, decode_output_train, decode_target_train, batch_size):
 		# Make dataset splited each sentence
 		dataset = tf.data.Dataset.from_tensor_slices((encode_train, decode_output_train, decode_target_train))
-
 		# Shuffled whole dataset
 		dataset = dataset.shuffle(buffer_size=len(encode_train))
 
@@ -278,8 +278,8 @@ class PreProcessing:
 
 
 def main(self):
-	data = PreProcessing()
-	char_to_idx, idx_to_char, voc_len = data.load_voc()
+	data = self.PreProcessing()
+	char2idx, idx2char, voc_len = data.load_voc()
 
 
 
