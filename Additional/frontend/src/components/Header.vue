@@ -74,6 +74,16 @@ export default {
       var select = document.querySelector('.chatbox')
       select.innerHTML += "<p class='arrow_box'>"+ this.text +"</p></br>"
       select.scrollTop = select.scrollHeight;
+
+      axios.get("http://localhost:5000/")
+          .then(() => {
+            // if(response == 1) {
+            //   this.showSignUpConfirmAlert('회원가입 성공!','success')
+            // }else {
+            //   this.showErrorAlert(response)
+            // }
+          })
+
       this.text = ""
     }
   }
