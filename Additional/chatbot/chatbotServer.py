@@ -4,8 +4,8 @@ import pymysql
 app = Flask(__name__)
 
 
-@app.route("/api/chatbottest", method=["POST"])
-def chatbot_test():
+@app.route("/api/chat", methods=['POST'])
+def chat_test():
     msg = request.form.get("msg")
     conn = pymysql.connect(host='localhost', user='root', password='1234', db='testdb', charset='utf8')
     cursor = conn.cursor(pymysql.cursors.DictCursor)
@@ -17,3 +17,11 @@ def chatbot_test():
     return jsonify(rows)
 
     conn.close()
+
+
+def main():
+    app.run()
+
+
+if __name__ == '__main__':
+    main()
