@@ -2,7 +2,6 @@ from flask import Flask, jsonify, request
 from scipy.sparse import lil_matrix
 from flask_cors import CORS
 from konlpy.tag import Okt
-import pandas as pd
 import numpy as np
 import pickle
 import os
@@ -10,8 +9,8 @@ import conn.conn as conn
 
 # Get file path
 ROOT_PATH = os.path.dirname(os.path.abspath(__file__))
-STATIC_PATH = os.path.join(ROOT_PATH + "\\..\\..\\front", 'test/dist')
-
+STATIC_PATH = os.path.join(ROOT_PATH + "\\..\\..\\front_testdatainput",'dist')
+print(STATIC_PATH)
 app = Flask(__name__, static_folder=STATIC_PATH, static_url_path='')
 
 # Get ai model
@@ -40,7 +39,7 @@ def tokenize_data(data_row):
 
 
 # Logistic Regression Model
-def load_logistic_metion(mention):
+def load_logistic_mention(mention):
     global logistic_regression_model, word_indices
     mention_token_data = tokenize_data(mention)
 
@@ -67,12 +66,12 @@ def get_start_page_end_page():
 
     page = int(request.form.get("page"))
 
-    sql = "select count(*) as cnt from comments"
+    sql = "select count(*) as cnt from comments_train"
     cursor.execute(sql)
 
     cnt_comments = cursor.fetchone()["cnt"]
 
-    final_page = int(cnt_comments / 10)
+    final_page = int(cnt_comments / 100)
     start_page = page - 2
 
     if start_page <= 0:
@@ -97,9 +96,9 @@ def get_comments_page():
     cursor = conn.db().cursor()
 
     page = int(request.form.get("page"))
-    limit = (page - 1) * 10
+    limit = (page - 1) * 100
 
-    sql = "select * from comments order by num desc limit %s, 10"
+    sql = "select * from comments_train order by comment_num limit %s, 100"
     cursor.execute(sql, limit)
     result = cursor.fetchall()
 
@@ -115,8 +114,8 @@ def comment_push():
     context = request.form.get("context")
 
     # calc label
-    label = load_logistic_metion(context)
-    sql = "insert into comments(context, label) values(%s, %s)"
+    label = load_logistic_mention(context)
+    sql = "insert into comments_train(context, label) values(%s, %s)"
     cursor.execute(sql, (context, label))
     db.commit()
 
@@ -124,13 +123,13 @@ def comment_push():
 
 
 # Edit comment label naive
-@app.route("/api/edit/label", methods=["POST"])
-def label_logistic_edit():
+@app.route("/api/edit/labelnews", methods=["POST"])
+def label_news_edit():
     db = conn.db()
     cursor = db.cursor()
 
     num = request.form.get("num")
-    label = request.form.get("label")
+    label = request.form.get("label_news")
 
     label = int(label)
     if label == 1:
@@ -138,7 +137,27 @@ def label_logistic_edit():
     else:
         label = 1
 
-    sql = "update comments set label =%s where num=%s"
+    sql = "update comments_train set label_news =%s where comment_num=%s"
+    cursor.execute(sql, (label, num))
+    db.commit()
+    return ""
+
+
+@app.route("/api/edit/labellocal", methods=["POST"])
+def label_local_edit():
+    db = conn.db()
+    cursor = db.cursor()
+
+    num = request.form.get("num")
+    label = request.form.get("label_local")
+
+    label = int(label)
+    if label == 1:
+        label = 0
+    else:
+        label = 1
+
+    sql = "update comments_train set label_local =%s where comment_num=%s"
     cursor.execute(sql, (label, num))
     db.commit()
     return ""
@@ -152,44 +171,14 @@ def comment_del():
 
     num = request.form.get("num")
 
-    sql = "delete from comments where num = %s"
+    sql = "delete from comments_train where comment_num = %s"
     cursor.execute(sql, num)
     db.commit()
 
     return ""
 
 
-# Add News test case to DB
-def add_news(list_news):
-    # Read test case
-    db = conn.db()
-    cursor = db.cursor()
-
-    sql = "insert into News (news_title, news_context) values()"
-    cursor.executemany(sql, list_news)
-    db.commit()
-
-    add_comment()
-
-    return ""
-
-
-# Add comment case to DB
-def add_comment(list_comment):
-    db = conn.db()
-    cursor = db.cursor()
-
-    for comment in list_comment:
-        comment.append(logistic_regression_model(comment[1]))
-        ''
-    sql = "insert into comments(news_num, context, label) values (%s, %s, %s)"
-
-    cursor.executemany(sql, list_comment)
-    db.commit()
-
-
 def main():
-    # add_testcase()
     app.run(debug=True)
 
 
