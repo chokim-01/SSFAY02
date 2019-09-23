@@ -16,11 +16,12 @@ def load_data():
     input_count = 0
     blank_count = 0
 
-    for idx in range(news_len):
+    for news_idx in range(news_len):
         flag = False
 
-        for i in range(idx):
-            if news_data[idx][0] == news_d[i][0]:
+        # Skip duplicate news
+        for news_before in range(news_idx):
+            if news_data[news_idx][0] == news_d[news_before][0]:
                 flag = True
                 blank_count += 1
                 break
@@ -28,7 +29,7 @@ def load_data():
         if flag:
             continue
 
-        news_d[input_count] = news_data[idx]
+        news_d[input_count] = news_data[news_idx]
         input_count += 1
 
     news_d = news_d[:input_count]
@@ -77,7 +78,7 @@ def add_comment(comments_data):
 
 def add_testcase():
     news_data, comments_data = load_data()
-    # add_news(news_data)
+    add_news(news_data)
     add_comment(comments_data)
 
     return
