@@ -90,14 +90,16 @@ def update_label(data):
         if cnt % 1000 == 0:
             print("cnt : ", cnt)
 
+    print(" [+] Label change")
+
     db = get_connection()
     cursor = get_cursor(db)
 
     sql = "update comments set label_news = %s, label_local = %s, comment_context = %s where comment_num = %s"
-    cursor.execute(sql, data)
+    cursor.executemany(sql, data)
     db.commit()
 
-    print("[+] update label")
+    print("[+] Update to DB")
 
 
 def main():
