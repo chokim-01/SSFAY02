@@ -5,7 +5,7 @@ import pickle
 # Load data
 def load_data():
     # Get news data
-    with open('../../crawling/news_data.clf', 'rb') as news_data:
+    with open('../../crawling/news_data2.clf', 'rb') as news_data:
         news_data = pickle.load(news_data)
 
     news_len = len(news_data)
@@ -35,7 +35,7 @@ def load_data():
     news_d = news_d[:input_count]
 
     # Get comment data
-    with open('../../crawling/comment_data.clf', 'rb') as comments:
+    with open('../../crawling/comment_data2.clf', 'rb') as comments:
         comments_data = pickle.load(comments)
     
     comments_len = len(comments_data)
@@ -46,13 +46,14 @@ def load_data():
         comments_data[cmt_idx].append(int(0))
         comments_data[cmt_idx][0] = int(comments_data[cmt_idx][0])
 
-
+    print(len(news_d))
+    print(len(comments_data))
     return news_d, comments_data
 
 
 # Add News test case to DB
 def add_news(news_data):
-    db = conn.db()
+    db = conn.db_hr()
     cursor = db.cursor()
 
     sql = "insert into news (news_num, news_title, news_context, news_date) values(%s, %s, %s, %s)"
@@ -64,7 +65,7 @@ def add_news(news_data):
 
 # Add comment case to DB
 def add_comment(comments_data):
-    db = conn.db()
+    db = conn.db_hr()
     cursor = db.cursor()
 
     sql = "insert into comments(news_num, comment_context, comment_time," \
@@ -76,8 +77,29 @@ def add_comment(comments_data):
     return
 
 
-def add_testcase():
+# check table news duplicate
+def check_news_duplicate():
+    db = conn.db_hr()
+    cursor = db.cursor()
+
     news_data, comments_data = load_data()
+
+    for news in news_data:
+        print(news)
+        sql = "select count(*) as count from news where news_num = %s"
+        cursor.executemany(sql, news)
+
+        rows = cursor.fetchall()
+        print(rows[0]['count'])
+        if rows[0]['count'] >= 1:
+            del news_data[news]
+
+    return news_data, comments_data
+
+
+def add_testcase():
+    news_data, comments_data = check_news_duplicate()
+
     add_news(news_data)
     add_comment(comments_data)
 
