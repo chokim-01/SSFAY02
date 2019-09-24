@@ -1,22 +1,27 @@
 from sklearn.linear_model import LogisticRegression
 from scipy.sparse import lil_matrix
 from konlpy.tag import Okt
-import pandas as pd
 import numpy as np
+import time
 import pymysql
 import pickle
-import time
 import nltk
-import re
 
-# Train data frame
-data_frame = None
-
-# Train docs About label_news & label_local
 train_docs = None
 word_indices = dict()
 
 
+# Get connection
+def get_connection():
+    return pymysql.connect(host='localhost', user='root', password='toor', db='ssafynews_ai', charset="utf8", cursorclass=pymysql.cursors.DictCursor)
+
+
+# Get cursor
+def get_cursor(db):
+    return db.cursor(pymysql.cursors.DictCursor)
+
+
+# Tokenize text
 def tokenize_data(data_row):
     okt = Okt()
     return ['/'.join(t) for t in okt.pos(data_row, norm=True, stem=True)]
@@ -24,16 +29,18 @@ def tokenize_data(data_row):
 
 # Get data from Database
 def load_data():
-    global data_frame, train_docs
+    global train_docs
+    db = get_connection()
+    cursor = get_cursor(db)
 
-    data_frame = pd.read_csv("../Data/data.txt", sep="/~/").dropna()[["context", "label_news", "label_local"]].values
-    print("[+] Load")
-    # About news
-    train_docs = [(tokenize_data(train_data_row[0]), train_data_row[1], train_data_row[2]) for train_data_row in data_frame]
+    sql = "select * from comments"
+    cursor.execute(sql)
+    result = cursor.fetchall()
 
+    print("[+] Load from DB")
+
+    train_docs = [(tokenize_data(data_row["comment_context"]), data_row["label_news"], data_row["label_local"]) for data_row in result]
     print("[+] Tokenize")
-
-    return train_docs
 
 
 # make word_indices
@@ -41,7 +48,6 @@ def make_word_indices():
     global train_docs, word_indices
 
     train_tokens = [token for train_doc in train_docs for token in train_doc[0]]
-
     train_text = nltk.Text(train_tokens, name='NMSC')
 
     idx = 0
@@ -51,9 +57,7 @@ def make_word_indices():
             word_indices[word] = idx
             idx += 1
 
-    print("[+] Make word")
-
-    return
+    print("[+] Make word_indices")
 
 
 # one hot embedding
@@ -61,7 +65,7 @@ def make_sparse_matrix():
     global train_docs, word_indices
 
     train_len = len(train_docs)
-    word_indices_len = len(word_indices)
+    word_indices_len = len(word_indices) + 1
 
     x_train = lil_matrix((train_len, word_indices_len), dtype=np.int64)
     y_train = np.zeros((train_len, 2))
@@ -86,21 +90,18 @@ def make_model(x_train, y_train):
     news_model = LogisticRegression().fit(x_train, y_train_news)
     local_model = LogisticRegression().fit(x_train, y_train_local)
 
-    pickle.dump(news_model, open("../Model/news_model.clf", "wb"))
-    pickle.dump(local_model, open("../Model/local_model.clf", "wb"))
-    pickle.dump(word_indices, open("../Model/word_indices.clf", "wb"))
+    pickle.dump(news_model, open("../Model/news_model_server.clf", "wb"))
+    pickle.dump(local_model, open("../Model/local_model_server.clf", "wb"))
+    pickle.dump(word_indices, open("../Model/word_indices_server.clf", "wb"))
 
-    print(" [+] Make model")
+    print("[+] Make model")
 
 
 def main():
-    start = time.time()
     load_data()
     make_word_indices()
     x_train, y_train = make_sparse_matrix()
     make_model(x_train, y_train)
-
-    print("End : ", time.time() - start)
 
 
 if __name__ == '__main__':
