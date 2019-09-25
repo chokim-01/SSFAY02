@@ -31,18 +31,29 @@ def get_news():
 
     date = int(request.form.get("date"))
     page = int(request.form.get("page"))
-
     limit = (page - 1) * 5
 
     sql = "select * from news where news_date = %s order by news_num limit %s, 5"
-    cursor.execute(sql, date, limit)
+    cursor.execute(sql, (date, limit))
     result = cursor.fetchall()
 
     return jsonify(result)
 
 
 # Get news by tag
+@app.route("/api/get/tag", methods=["POST"])
+def get_tags():
+    cursor = conn.db().cursor()
 
+    news_num = int(request.form.get("news_num"))
+
+    sql = "select tag_name from tag where news_num = %s"
+
+    cursor.execute(sql, news_num)
+    result = cursor.fetchall()
+
+    return jsonify(result)
+    
 # Get news by title
 @app.route("/api/get/news_title", methods=["POST"])
 def get_news_by_title():
@@ -74,12 +85,42 @@ def get_comments():
     news_num = int(request.form.get("news_num"))
     page = int(request.form.get("page"))
     limit = (page - 1) * 30
-
     sql = "select * from comments where news_num = %s order by comment_num limit %s, 30"
-    cursor.execute(sql, news_num, limit)
+    cursor.execute(sql, (news_num, limit))
     result = cursor.fetchall()
 
     return jsonify(result)
+
+# Get comments Total Count
+@app.route("/api/get/page_count", methods=["POST"])
+def get_start_page_end_page():
+    cursor = conn.db().cursor()
+
+    page = int(request.form.get("page"))
+    news_num = int(request.form.get("news_num"))
+    sql = "select count(*) as cnt from comments where news_num = %s"
+    cursor.execute(sql,news_num)
+
+    cnt_comments = cursor.fetchone()["cnt"]
+
+    final_page = int(cnt_comments / 30)
+    start_page = page - 2
+
+    if start_page <= 0:
+        start_page = 1
+
+    end_page = page + 3
+    if end_page >= final_page:
+        end_page = final_page
+
+    page_list = []
+    for i in range(start_page, end_page):
+        page_list.append(i)
+    print(page_list)
+    page_data = {"page_list": page_list, "final_page": final_page}
+
+    return jsonify(page_data)
+
 
 
 # Get comment_time
