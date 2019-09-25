@@ -46,7 +46,6 @@ def load_data():
         comments_data[cmt_idx].append(int(0))
         comments_data[cmt_idx][0] = int(comments_data[cmt_idx][0])
 
-
     return news_d, comments_data
 
 
@@ -76,8 +75,27 @@ def add_comment(comments_data):
     return
 
 
-def add_testcase():
+# check table news duplicate
+def check_news_duplicate():
+    db = conn.db()
+    cursor = db.cursor()
+
     news_data, comments_data = load_data()
+
+    for news in news_data:
+        sql = "select count(*) as count from news where news_num = %s"
+        cursor.executemany(sql, news)
+        rows = cursor.fetchall()
+        
+        if rows[0]['count'] >= 1:
+            del news_data[news]
+
+    return news_data, comments_data
+
+
+def add_testcase():
+    news_data, comments_data = check_news_duplicate()
+
     add_news(news_data)
     add_comment(comments_data)
 

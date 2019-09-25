@@ -162,6 +162,34 @@ def get_news_count_by_date(date):
 
     return result
 
+# Get news by tags
+@app.route("/api/get/tags", methods=["POST"])
+def get_tags():
+    cursor = conn.db().cursor()
+
+    news_num = int(request.form.get("news_num"))
+
+    sql = "select tag_name from tag where news_num = %s"
+
+    cursor.execute(sql, news_num)
+    result = cursor.fetchall()
+
+    return jsonify(result)
+
+# Get news by title
+@app.route("/api/get/news_title", methods=["POST"])
+def get_news_by_title():
+    cursor = conn.db().cursor()
+
+    title = int(request.form.get("title"))
+
+    sql = "select * from news where title like '%%s%"
+    cursor.execute(sql, title)
+    result = cursor.fetchall()
+
+    return jsonify(result)
+
+
 
 ###################################################
 #   Comments section
@@ -206,7 +234,7 @@ def get_start_page_end_page():
     page_list = []
     for i in range(start_page, end_page):
         page_list.append(i)
-    print(page_list)
+
     page_data = {"page_list": page_list, "final_page": final_page}
 
     return jsonify(page_data)
@@ -221,7 +249,8 @@ def get_comments_time():
     news_num = int(request.form.get("news_num"))
 
     sql = "select substr(comment_time, 12, 2) as hour, count(*) as hour_cnt " \
-          "from comments where news_num = %s group by hour"
+          "from comments where news_num = %s group by hour order by hour"
+
     cursor.execute(sql, news_num)
     result = cursor.fetchall()
 
