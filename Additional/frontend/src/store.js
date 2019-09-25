@@ -5,6 +5,8 @@ Vue.use(Vuex);
 
 export const store = new Vuex.Store({
   state: {
-    searchKey: ""
+    searchKey: "",
+    searchCat: "",
+    searchChk: false
   },
 });

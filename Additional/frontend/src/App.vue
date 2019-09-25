@@ -22,5 +22,9 @@ export default {
 #newsCommentPage i {
   transform: scale(0.6);
 }
+#realNewsTitle li {
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
 
 </style>

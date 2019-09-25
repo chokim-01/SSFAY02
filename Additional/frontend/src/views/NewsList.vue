@@ -1,7 +1,8 @@
 <template>
   <div>
-<v-carousel id="newsListCrs" prev-icon="fas fa-angle-left" next-icon="fas fa-angle-right" hide-delimiters>
-  <v-carousel-item>
+    <v-layout v-if="this.$store.state.searchChk">
+      <v-flex class="text-xs-right">{{ findKey }}</v-flex>
+    </v-layout>
     <v-layout class="content" row wrap>
       <v-flex class="collumn" v-for="newsOne in newsList" :key="newsOne.news_num" @click="moveDetail(newsOne)">
         <div class="head">
@@ -9,26 +10,24 @@
           </span>
           <p><span class="headline hl4">{{newsOne.news_title}}</span></p>
         </div>
-        <p v-html="newsOne.news_context"></p>
+        <p class="newsContent" v-html="newsOne.news_context"></p>
       </v-flex>
     </v-layout>
-  </v-carousel-item>
-</v-carousel>
-<div class="text-xs-center">
-  <div>
-    <v-btn color="primary" fab small dark>
-        <v-icon>fas fa-chevron-left</v-icon>
-    </v-btn>
-    <v-btn color="primary"  style="width:88px;" round dark>
-      <span v-if="isSearchPage" @click="chkSearchPage = !chkSearchPage">{{page}} / {{totalPage}}</span>
-      <input v-else type="number" v-model="pageNum" @keyup.enter="getNewsList('page')" style="width:70px;">
-    </v-btn>
-    <v-btn color="primary" fab small dark>
-        <v-icon>fas fa-chevron-right</v-icon>
-    </v-btn>
+    <div class="text-xs-center">
+      <div>
+        <v-btn color="primary" fab small dark>
+            <v-icon>fas fa-chevron-left</v-icon>
+        </v-btn>
+        <v-btn color="primary"  style="width:88px;" round dark>
+          <span v-if="isSearchPage" @click="chkSearchPage = !chkSearchPage">{{page}} / {{totalPage}}</span>
+          <input v-else type="number" v-model="pageNum" @keyup.enter="getNewsList('page')" style="width:70px;">
+        </v-btn>
+        <v-btn color="primary" fab small dark>
+            <v-icon>fas fa-chevron-right</v-icon>
+        </v-btn>
+      </div>
+    </div>
   </div>
-</div>
-</div>
 </template>
 
 <script>
@@ -44,61 +43,95 @@ export default {
       pageNum: "",
       newsList: [{news_context:"", news_date:"", news_num:"", news_title:""}],
       chkSearchPage: true,
-      searchKey: this.$store.state.searchKey
+      searchKey: this.$store.state.searchKey,
+      searchCat: this.$store.state.searchCat,
     }
   },
   components: {
     NewsDetail
   },
   mounted() {
-    this.getNewsList('all');
+    this.getNewsList();
+    this.$store.state.searchChk = false;
   },
   computed: {
     findKey() {
-      this.searchKey = this.$store.state.searchKey;
-      return this.searchKey;
+      if(this.searchKey != this.$store.state.searchKey) {
+        this.searchKey = this.$store.state.searchKey;
+        this.searchCat = this.$store.state.searchCat;
+        this.getNewsList();
+      }
+
+      if(this.searchCat == "전체")
+        var str = "["+this.searchCat+"] 검색한 결과입니다." ;
+      else
+        var str = "["+this.searchCat+"] ' "+this.searchKey+" '(으)로 검색한 결과입니다." ;
+      return str;
     },
     isSearchPage() {
       return this.chkSearchPage;
     }
   },
   methods: {
-    getNewsList(category) {
-      console.log(category)
+    getNewsList(opt) {
       const axios = require("axios");
-      if(category=='all'){
+      if(this.$store.state.searchCat=='' || this.$store.state.searchCat=='전체'){
         // 전체 리스트 가져오기
         var today = new Date();
-        var day = today.getDate();
-        var month = today.getMonth()+1;
+        var day = today.getDate() - 1; // 어제 기사 가져오기
+        var month = today.getMonth() + 1;
         var year = today.getFullYear();
 
         if(month<10) month = "0" + month;
 
-        day-=8;
+        day-=7; // 나중에 지울것
+
+        if(opt == "page") {
+          this.page = this.pageNum;
+        }
+        else {
+          this.page = 1;
+        }
+
         let formData = new FormData();
         formData.append("page", this.page);
         formData.append("date", year+""+month+""+day);
         axios.post("http://localhost:5000/api/get/news", formData)
           .then(res => {
-            console.log(res.data);
             this.newsList = res.data;
-            console.log(this.newsList.length)
+          })
+
+        axios.post("http://localhost:5000/api/get/news_count", formData)
+          .then(res => {
+            this.totalPage = Math.floor(res.data[0]["count(*)"]/5)+1;
+            if(this.chkSearchPage == false) {
+              this.chkSearchPage = true;
+            }
           })
       }
-      else if(category=='page'){
-        console.log(this.pageNum);
-        this.chkSearchPage = !this.chkSearchPage;
-        // 페이지 이동
-        axios.post("http://localhost:5000/")
-          .then(() => {
-
-            this.$store.state.searchKey = "";
-            this.searchKey = "";
-          })
-      }
-      else if(category=='title') {
-
+      else {
+        // 검색 리스트 가져오기
+        if(opt == "page"){
+          this.page = this.pageNum;
+        }
+        else {
+          this.page = 1;
+        }
+        let formData = new FormData();
+        formData.append("searchCat", this.searchCat);
+        formData.append("searchKey", this.searchKey);
+        formData.append("page", this.page);
+        axios.post("http://localhost:5000/api/get/search", formData)
+          .then(res => {
+            this.newsList = res.data;
+        })
+        axios.post("http://localhost:5000/api/get/search_count", formData)
+          .then(res => {
+            this.totalPage = Math.floor(res.data[0]["count(*)"]/5)+1;
+            if(this.chkSearchPage == false) {
+              this.chkSearchPage = true;
+            }
+        })
       }
     },
     moveDetail(newsObj) {
@@ -110,16 +143,11 @@ export default {
           detailNum: newsObj.news_num
         }});
     }
-  },
-
+  }
 }
 </script>
 
 <style lang="scss" scoped>
-#newsListCrs {
-  box-shadow: none !important;
-}
-
 .content {
     font-family: 'Droid Serif', serif;
     font-size: 14px;
@@ -127,6 +155,10 @@ export default {
     display: inline-block;
     margin-left: 3%;
     box-sizing: content-box !important;
+}
+
+.newsContent {
+  font-family: "Noto Serif KR", serif;
 }
 
 .collumn {
