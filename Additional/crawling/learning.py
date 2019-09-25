@@ -1,6 +1,7 @@
 from sklearn.linear_model import LogisticRegression
 from scipy.sparse import lil_matrix
 from konlpy.tag import Okt
+import conn.conn as conn
 import numpy as np
 import time
 import pymysql
@@ -9,16 +10,6 @@ import nltk
 
 train_docs = None
 word_indices = dict()
-
-
-# Get connection
-def get_connection():
-    return pymysql.connect(host='localhost', user='root', password='toor', db='ssafynews_ai', charset="utf8", cursorclass=pymysql.cursors.DictCursor)
-
-
-# Get cursor
-def get_cursor(db):
-    return db.cursor(pymysql.cursors.DictCursor)
 
 
 # Tokenize text
@@ -30,10 +21,10 @@ def tokenize_data(data_row):
 # Get data from Database
 def load_data():
     global train_docs
-    db = get_connection()
-    cursor = get_cursor(db)
+    db = conn.db()
+    cursor = db.cursor()
 
-    sql = "select * from comments"
+    sql = "select comment_context, label_news, label_local from comments_train"
     cursor.execute(sql)
     result = cursor.fetchall()
 
@@ -65,7 +56,7 @@ def make_sparse_matrix():
     global train_docs, word_indices
 
     train_len = len(train_docs)
-    word_indices_len = len(word_indices) + 1
+    word_indices_len = len(word_indices)
 
     x_train = lil_matrix((train_len, word_indices_len), dtype=np.int64)
     y_train = np.zeros((train_len, 2))
@@ -87,11 +78,15 @@ def make_model(x_train, y_train):
     y_train_news = [row[0] for row in y_train]
     y_train_local = [row[1] for row in y_train]
 
-    news_model = LogisticRegression().fit(x_train, y_train_news)
-    local_model = LogisticRegression().fit(x_train, y_train_local)
-
+    lg = LogisticRegression()
+    news_model = lg.fit(x_train, y_train_news)
     pickle.dump(news_model, open("../Model/news_model_server.clf", "wb"))
+
+    lg = LogisticRegression()
+    local_model = lg.fit(x_train, y_train_local)
     pickle.dump(local_model, open("../Model/local_model_server.clf", "wb"))
+    lg.
+
     pickle.dump(word_indices, open("../Model/word_indices_server.clf", "wb"))
 
     print("[+] Make model")
