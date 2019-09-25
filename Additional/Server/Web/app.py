@@ -116,7 +116,6 @@ def get_start_page_end_page():
     page_list = []
     for i in range(start_page, end_page):
         page_list.append(i)
-    print(page_list)
     page_data = {"page_list": page_list, "final_page": final_page}
 
     return jsonify(page_data)
