@@ -53,7 +53,7 @@ def load_data():
 
 # Add News test case to DB
 def add_news(news_data):
-    db = conn.db_hr()
+    db = conn.db()
     cursor = db.cursor()
 
     sql = "insert into news (news_num, news_title, news_context, news_date) values(%s, %s, %s, %s)"
@@ -65,7 +65,7 @@ def add_news(news_data):
 
 # Add comment case to DB
 def add_comment(comments_data):
-    db = conn.db_hr()
+    db = conn.db()
     cursor = db.cursor()
 
     sql = "insert into comments(news_num, comment_context, comment_time," \
@@ -79,7 +79,7 @@ def add_comment(comments_data):
 
 # check table news duplicate
 def check_news_duplicate():
-    db = conn.db_hr()
+    db = conn.db()
     cursor = db.cursor()
 
     news_data, comments_data = load_data()
