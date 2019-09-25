@@ -6,7 +6,7 @@ import tensorflow as tf
 
 from config import DEFINES
 
-DATA_OUT_PATH = './data_out/'
+DATA_OUT_PATH = './Data_Output/'
 
 def main(self):
     data_out_path = os.path.join(os.getcwd(), DATA_OUT_PATH)
@@ -75,9 +75,8 @@ def main(self):
     predictions = classifier.predict(
         input_fn=lambda: Preprocessing.eval_input_fn(encode_predict_question, decode_predict_answer, decode_predict_target, 1))
 
-    result_sentence = Preprocessing.predict_to_sentence(predictions, idx2voca)
-
-    print(result_sentence)
+    answer, finished = Preprocessing.predict_next_sentence(predictions, idx2voca)
+    print(answer)
     print("\n [+] Predict accuracy: {accuracy: 0.6f}\n".format(**answer_result))
 
 

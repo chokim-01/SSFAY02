@@ -174,7 +174,7 @@ def predict_to_sentence(indexing_data, idx2voca):
     return answer
 
 
-def pred_next_sentence(indexing_data, idx2voca):
+def predict_next_sentence(indexing_data, idx2voca):
     global PAD, END
 
     vocabularies = []
