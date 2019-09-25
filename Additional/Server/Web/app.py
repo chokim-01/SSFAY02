@@ -31,17 +31,28 @@ def get_news():
 
     date = int(request.form.get("date"))
     page = int(request.form.get("page"))
-
     limit = (page - 1) * 5
 
     sql = "select * from news where news_date = %s order by news_num limit %s, 5"
-    cursor.execute(sql, date, limit)
+    cursor.execute(sql, (date, limit))
     result = cursor.fetchall()
 
     return jsonify(result)
 
 
-# Get news by tag
+# Get news by tags
+@app.route("/api/get/tags", methods=["POST"])
+def get_tags():
+    cursor = conn.db().cursor()
+
+    news_num = int(request.form.get("news_num"))
+
+    sql = "select tag_name from tag where news_num = %s"
+
+    cursor.execute(sql, news_num)
+    result = cursor.fetchall()
+
+    return jsonify(result)
 
 # Get news by title
 @app.route("/api/get/news_title", methods=["POST"])
@@ -74,12 +85,41 @@ def get_comments():
     news_num = int(request.form.get("news_num"))
     page = int(request.form.get("page"))
     limit = (page - 1) * 30
-
     sql = "select * from comments where news_num = %s order by comment_num limit %s, 30"
-    cursor.execute(sql, news_num, limit)
+    cursor.execute(sql, (news_num, limit))
     result = cursor.fetchall()
 
     return jsonify(result)
+
+# Get comments Total Count
+@app.route("/api/get/page_count", methods=["POST"])
+def get_start_page_end_page():
+    cursor = conn.db().cursor()
+
+    page = int(request.form.get("page"))
+    news_num = int(request.form.get("news_num"))
+    sql = "select count(*) as cnt from comments where news_num = %s"
+    cursor.execute(sql,news_num)
+
+    cnt_comments = cursor.fetchone()["cnt"]
+
+    final_page = int(cnt_comments / 30)
+    start_page = page - 2
+
+    if start_page <= 0:
+        start_page = 1
+
+    end_page = page + 3
+    if end_page >= final_page:
+        end_page = final_page
+
+    page_list = []
+    for i in range(start_page, end_page):
+        page_list.append(i)
+    page_data = {"page_list": page_list, "final_page": final_page}
+
+    return jsonify(page_data)
+
 
 
 # Get comment_time
@@ -90,7 +130,7 @@ def get_comments_time():
     news_num = int(request.form.get("news_num"))
 
     sql = "select substr(comment_time, 12, 2) as hour, count(*) as hour_cnt " \
-          "from comments where news_num = %s group by hour"
+          "from comments where news_num = %s group by hour order by hour"
     cursor.execute(sql, news_num)
     result = cursor.fetchall()
 
