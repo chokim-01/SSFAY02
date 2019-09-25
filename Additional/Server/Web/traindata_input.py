@@ -5,7 +5,7 @@ import pickle
 # Load data
 def load_data():
     # Get news data
-    with open('../../crawling/news_data2.clf', 'rb') as news_data:
+    with open('../../crawling/news_data.clf', 'rb') as news_data:
         news_data = pickle.load(news_data)
 
     news_len = len(news_data)
@@ -35,7 +35,7 @@ def load_data():
     news_d = news_d[:input_count]
 
     # Get comment data
-    with open('../../crawling/comment_data2.clf', 'rb') as comments:
+    with open('../../crawling/comment_data.clf', 'rb') as comments:
         comments_data = pickle.load(comments)
     
     comments_len = len(comments_data)
@@ -46,8 +46,6 @@ def load_data():
         comments_data[cmt_idx].append(int(0))
         comments_data[cmt_idx][0] = int(comments_data[cmt_idx][0])
 
-    print(len(news_d))
-    print(len(comments_data))
     return news_d, comments_data
 
 
@@ -85,12 +83,10 @@ def check_news_duplicate():
     news_data, comments_data = load_data()
 
     for news in news_data:
-        print(news)
         sql = "select count(*) as count from news where news_num = %s"
         cursor.executemany(sql, news)
-
         rows = cursor.fetchall()
-        print(rows[0]['count'])
+        
         if rows[0]['count'] >= 1:
             del news_data[news]
 
