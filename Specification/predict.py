@@ -16,11 +16,9 @@ if __name__ == '__main__':
     if (arg_length < 2):
         raise Exception("Don't call us. We'll call you")
 
-    # 데이터를 통한 사전 구성 한다.
+    # make dictionary
     char2idx, idx2char, vocabulary_length = Preprocessing.load_vocabulary()
 
-    # 테스트용 데이터 만드는 부분이다.
-    # 인코딩 부분 만든다.
     input = ""
     for i in sys.argv[1:]:
         input += i
@@ -32,17 +30,18 @@ if __name__ == '__main__':
     predic_output_dec, predic_output_dec_length = Preprocessing.decode_processing([""], char2idx)
     predic_target_dec = Preprocessing.decode_target_processing([""], char2idx)
 
-    # 에스티메이터 구성한다.
+    print("[+] Encoding Decoding complete")
+
     classifier = tf.estimator.Estimator(
-        model_fn=ml.Model,  # 모델 등록한다.
-        model_dir=DEFINES.check_point_path,  # 체크포인트 위치 등록한다.
-        params={  # 모델 쪽으로 파라메터 전달한다.
+        model_fn=ml.Model,
+        model_dir=DEFINES.check_point_path,
+        params={
             'embedding_size': DEFINES.embedding_size,
-            'model_hidden_size': DEFINES.model_hidden_size,  # 가중치 크기 설정한다.
+            'model_hidden_size': DEFINES.model_hidden_size,
             'ffn_hidden_size': DEFINES.ffn_hidden_size,
             'attention_head_size': DEFINES.attention_head_size,
-            'learning_rate': DEFINES.learning_rate,  # 학습율 설정한다.
-            'vocabulary_length': vocabulary_length,  # 딕셔너리 크기를 설정한다.
+            'learning_rate': DEFINES.learning_rate,
+            'vocabulary_length': vocabulary_length,
             'layer_size': DEFINES.layer_size,
             'max_sentence_length': DEFINES.max_sentence_length,
             'xavier_initializer': DEFINES.xavier_initializer
