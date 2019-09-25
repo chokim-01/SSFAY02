@@ -56,6 +56,15 @@
             <v-flex xs12 sm4>
               <v-btn class="headerBtn" to="/" flat> News </v-btn>
               <v-btn class="headerBtn" to="AboutUs" flat> About Us </v-btn>
+              <v-icon class="chatbotIcon" @click.stop="chk_view = !chk_view">far fa-comment-dots</v-icon>
+              <v-menu class="chat" v-model="chk_view" :close-on-content-click="false" :nudge-width="200" offset-y>
+                <template v-slot:activator="{ on }"></template>
+
+                <v-card>
+                  <v-flex class="chatbox"></v-flex>
+                  <textarea class="chattext" v-model="text" @keyup.enter="enter" name="content" rows="2" placeholder="입력하세요."></textarea>
+                </v-card>
+              </v-menu>
             </v-flex>
             <v-flex hidden-xs-only sm3></v-flex>
             <v-flex xs12 sm5 id="realNewsTitle">
@@ -68,8 +77,13 @@
 </template>
 
 <script>
+import axios from "axios";
+import Server from "../server.js"
+import {store} from "../store.js"
+
 export default {
   name: 'Header',
+  store,
   components: {
   },
   data() {
@@ -80,6 +94,8 @@ export default {
       searchCat: "전체",
       selectCat: ['전체', '제목', '태그', '날짜'],
       menu: false,
+      chk_view: false,
+      text: ""
     }
   },
   mounted() {
@@ -90,6 +106,7 @@ export default {
     MovePage(location) {
       this.NowPage = location;
     },
+
     SearchNews() {
       if(this.searchCat == "전체"){
         this.$store.state.searchCat = this.searchCat;
@@ -136,6 +153,34 @@ export default {
             this.newsTitle.push((parseInt(newsIdx)+1)+". "+res.data[newsIdx].news_title);
           }
         })
+    },
+    enter(){
+      if(this.check){
+        this.check = !this.check
+        return ;
+      }
+
+      this.check = !this.check
+
+      // user comment
+      var select = document.querySelector('.chatbox')
+      select.innerHTML += "<p class='arrow_box_right'>"+ this.text +"</p></br>"
+
+      // form data
+      var form = new FormData()
+      form.append('msg', this.text)
+
+      // chatbot comment
+      Server(this.$store.state.SERVER_URL).post("/api/chat", form).then(res => {
+        select.innerHTML += "<p class='arrow_box_left'>" + JSON.stringify(res.data[0]["value"]) + "</p>"
+      }).catch(error => {
+        console.log(error)
+      }).then(()=>{
+        select.scrollTop = select.scrollHeight
+        document.querySelector('.chattext').value = ''
+      })
+
+      this.text = ""
     }
   }
 
@@ -206,6 +251,29 @@ export default {
 
 .v-btn--active:before, .v-btn:focus:before, .v-btn:hover:before {
     background-color: #00000000;
+}
+
+.chatbotIcon {
+  line-height: 15px;
+  margin-left: 10px;
+  font-size: 30px;
+}
+
+.chatbox {
+  height: 350px;
+  border: 1px solid black;
+  overflow-y:scroll;
+}
+
+.chat {
+  width: 15%;
+  margin: auto;
+}
+
+.chattext {
+  width: 80%;
+  border: 0;
+  outline: 0;
 }
 
 </style>
