@@ -1,73 +1,74 @@
 <template>
   <v-layout row wrap>
     <v-flex class="content">
-          <v-flex class="title1" xs12 my-4>팀 소개</v-flex>
-          <v-flex class="title2" xs12 my-4>이 프로젝트를 하게 된 이유</v-flex>
+          <v-flex class="title1" xs12 my-4>프로젝트 소개</v-flex>
+          <v-flex class="title2" xs12 my-4>네이버 뉴스를 통해 정치적 성향을 알아보고자</v-flex>
           <v-flex class="content1" xs12 my-4>
-            dddd
-          </v-flex></br></br>
+            개발중...
+          </v-flex></br>
           <hr/>
-          </br></br>
+          </br>
           <v-flex class="title2" xs12 my-4>팀원 소개</v-flex>
+
         <div class="collumns">
+
           <div class="collumn">
-            <div class="head"><span class="headline hl1">Give people courage</span>
+            <div class="head"><span class="headline hl1">박사홍</span>
             </div>
-            The sunset faded to twilight before anything further happened. The crowd far away on the left, towards Woking, seemed to grow, and I heard now a faint murmur from it. The little knot of people towards Chobham dispersed. There was scarcely an
-            intimation of movement from the pit.</p>
+            안녕하세요</p>
             <figure class="figure">
               <img class="media" src="http://i.giphy.com/PW7MoTD2d9pJK.gif" alt="">
-              <figcaption class="figcaption">Hermine hoping for courage.</figcaption>
+              <figcaption class="figcaption">하하</figcaption>
             </figure>
           </div>
+
           <div class="collumn">
-            <div class="head"><span class="headline hl1">Give people courage</span>
+            <div class="head"><span class="headline hl1">양동권</span>
             </div>
-            The sunset faded to twilight before anything further happened. The crowd far away on the left, towards Woking, seemed to grow, and I heard now a faint murmur from it. The little knot of people towards Chobham dispersed. There was scarcely an
-            intimation of movement from the pit.</p>
+            안녕하세요</p>
             <figure class="figure">
               <img class="media" src="http://i.giphy.com/PW7MoTD2d9pJK.gif" alt="">
-              <figcaption class="figcaption">Hermine hoping for courage.</figcaption>
+              <figcaption class="figcaption">하하</figcaption>
             </figure>
           </div>
+
           <div class="collumn">
-            <div class="head"><span class="headline hl1">Give people courage</span>
+            <div class="head"><span class="headline hl1">박근형</span>
             </div>
-            The sunset faded to twilight before anything further happened. The crowd far away on the left, towards Woking, seemed to grow, and I heard now a faint murmur from it. The little knot of people towards Chobham dispersed. There was scarcely an
-            intimation of movement from the pit.</p>
+            안녕하세요</p>
             <figure class="figure">
               <img class="media" src="http://i.giphy.com/PW7MoTD2d9pJK.gif" alt="">
-              <figcaption class="figcaption">Hermine hoping for courage.</figcaption>
+              <figcaption class="figcaption">하하</figcaption>
             </figure>
           </div>
+
           <div class="collumn">
-            <div class="head"><span class="headline hl1">Give people courage</span>
+            <div class="head"><span class="headline hl1">정가영</span>
             </div>
-            The sunset faded to twilight before anything further happened. The crowd far away on the left, towards Woking, seemed to grow, and I heard now a faint murmur from it. The little knot of people towards Chobham dispersed. There was scarcely an
-            intimation of movement from the pit.</p>
+            안녕하세요</p>
             <figure class="figure">
               <img class="media" src="http://i.giphy.com/PW7MoTD2d9pJK.gif" alt="">
-              <figcaption class="figcaption">Hermine hoping for courage.</figcaption>
+              <figcaption class="figcaption">하하</figcaption>
             </figure>
           </div>
+
           <div class="collumn">
-            <div class="head"><span class="headline hl1">Give people courage</span>
+            <div class="head"><span class="headline hl1">박홍렬</span>
             </div>
-            The sunset faded to twilight before anything further happened. The crowd far away on the left, towards Woking, seemed to grow, and I heard now a faint murmur from it. The little knot of people towards Chobham dispersed. There was scarcely an
-            intimation of movement from the pit.</p>
+            안녕하세요</p>
             <figure class="figure">
               <img class="media" src="http://i.giphy.com/PW7MoTD2d9pJK.gif" alt="">
-              <figcaption class="figcaption">Hermine hoping for courage.</figcaption>
+              <figcaption class="figcaption">하하</figcaption>
             </figure>
           </div>
+
           <div class="collumn">
-            <div class="head"><span class="headline hl1">Give people courage</span>
+            <div class="head"><span class="headline hl1">허정건</span>
             </div>
-            The sunset faded to twilight before anything further happened. The crowd far away on the left, towards Woking, seemed to grow, and I heard now a faint murmur from it. The little knot of people towards Chobham dispersed. There was scarcely an
-            intimation of movement from the pit.</p>
+            안녕하세요</p>
             <figure class="figure">
               <img class="media" src="http://i.giphy.com/PW7MoTD2d9pJK.gif" alt="">
-              <figcaption class="figcaption">Hermine hoping for courage.</figcaption>
+              <figcaption class="figcaption">하하</figcaption>
             </figure>
           </div>
         </div>
@@ -93,7 +94,10 @@
 #newsDetail {
   background-color: #D8D8D8;
 }
-
+.collumns{
+  margin-left: 2%;
+  margin-top: 30px;
+}
 .collumn
 .figure {
     margin: 0 0 20px;

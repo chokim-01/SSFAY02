@@ -17,7 +17,9 @@
       </v-flex>
     </v-layout>
   </v-flex>
-  <v-flex id="newspaperGraph" xs12 mb-5 pa-3>
+
+  <!-- Comments Chart -->
+  <v-flex id="newspaperGraph" xs12 mb-5 pa-3 >
     <v-layout row wrap>
       <v-flex xs12 sm1 />
       <v-flex xs12 sm5>
@@ -28,26 +30,30 @@
       </v-flex>
     </v-layout>
   </v-flex>
-  <v-flex class="posCenter" xs12 sm8 mb-5>
 
+  <!--Comments Title  -->
+  <v-flex class="posCenter"  xs12 sm8 mb-5>
     <v-card id="newsComment" flat>
-
       <v-layout class="mh50" row wrap>
-        <v-flex xs3 sm2>
-          <h2>댓글 {{commentsCount}}개</h2>
+        <v-flex xs12 sm5>
+          <h2>댓글 {{commentsCount}}개 <span class="newsCommentLocal"> ( 지역감정 {{localCount}} 개 ) </span></h2>
         </v-flex>
-        <v-flex xs7 sm9></v-flex>
-        <v-flex xs2 sm1>
-          <v-btn @click="showLocalFunc()">지역감정보기</v-btn>
+        <v-flex xs6 sm4></v-flex>
+        <v-flex xs6 sm3>
+          <div class="checks etrans">
+            <input type="checkbox" id="ex_chk3" @click="showLocalFunc">
+            <label for="ex_chk3">지역감정 숨기기</label>
+          </div>
         </v-flex>
       </v-layout>
 
+      <!-- Show local sentiment-->
       <v-list id="newsCommentList">
         <template v-for="comment in comments" class="cmtRow" v-if="showLocal">
           <v-layout class="mh50" row wrap>
-            <v-flex class="newsCommentRow" xs12 sm2><b>{{comment.comment_time}}</b></v-flex>
-            <v-flex class="newsCommentRow" v-text="comment.comment_context" xs10 sm9></v-flex>
-            <v-flex xs2 sm1 v-if="comment.label_news == '0'">
+            <v-flex class="newsCommentRow" xs12 sm2><b>{{ timeChang(comment.comment_time) }}</b></v-flex>
+            <v-flex :class="[ comment.label_local =='1' ? 'newsCommentRow isLocalComment' : 'newsCommentRow']" v-text="comment.comment_context" xs10 sm9></v-flex>
+            <v-flex v-if="comment.label_news == '0'" xs2 sm1>
               <v-chip id="newsThumbs" text-color="red" label>
                 <v-icon right>fas fa-thumbs-down</v-icon>
               </v-chip>
@@ -60,9 +66,10 @@
           </v-layout>
         </template>
 
+        <!-- Hide local sentiment-->
         <template v-for="comment in comments" class="cmtRow" v-if="!showLocal && comment.label_local =='0' ">
           <v-layout class="mh50" row wrap>
-            <v-flex class="newsCommentRow" xs12 sm2><b>{{comment.comment_time}}</b></v-flex>
+            <v-flex class="newsCommentRow" xs12 sm2><b>{{ timeChang(comment.comment_time) }}</b></v-flex>
             <v-flex class="newsCommentRow" v-text="comment.comment_context" xs10 sm9></v-flex>
             <v-flex xs2 sm1 v-if="comment.label_news == '0'">
               <v-chip id="newsThumbs" text-color="red" label>
@@ -82,16 +89,18 @@
 
       <!-- paging button -->
       <v-layout class="mh50 paging" row wrap>
+        <v-flex class="text-xs-center" xs12 sm 12>
+          <div>
+            <div class="pageButton_text" v-if="thisPage != 1" @click="getComments(1)">처음</div>
 
-        <div v-if="thisPage != 1" @click="getComments(1)">처음</div>
+            <div class="pageButton_text" v-for="i in pageList">
+              <div class="text-xs-center thisPageClass pageButton" @click="getComments(i)"  v-if="i === thisPage">{{i}}</div>
+              <div class="pageButton" @click="getComments(i)" v-else>{{i}}</div>
+            </div>
 
-        <div class="" v-for="i in pageList">
-          <div @click="getComments(i)" class="thisPageClass pageButton" v-if="i === thisPage">{{i}}</div>
-          <div @click="getComments(i)" class="pageButton" v-else>{{i}}</div>
-        </div>
-
-        <div v-model="finalPage" @click="getComments(finalPage)">마지막</div>
-
+            <div class="pageButton_text" v-model="finalPage" @click="getComments(finalPage)">마지막</div>
+          </div>
+        </v-flex>
       </v-layout>
 
     </v-card>
@@ -113,6 +122,7 @@ export default {
       doughnutData: null,
       comments: [],
       pageList: [],
+      tags:[],
       thisPage: 1,
       finalPage: 0,
       commentsCount: 0,
@@ -130,6 +140,7 @@ export default {
     this.getCommentsInfo();
     this.getCommentsTime();
 
+    // Get Chart
     setTimeout(() => {
       var docPNChart = document.getElementById("PNChart");
       var pnChart = new Chart(docPNChart, {
@@ -154,7 +165,7 @@ export default {
       var TimeChart = new Chart(docTimeChart, {
         type: "line",
         data: {
-          labels: ["12am", "1am", "2am", "3am", "4am", "5am", "6am", "7am", "8am", "9am", "10am", "11am", "12am"],
+          labels: ["0am", "1am", "2am", "3am", "4am", "5am", "6am", "7am", "8am", "9am", "10am", "11am", "12pm", "1pm", "2pm", "3pm", "4pm", "5pm", "6pm", "7pm", "8pm", "9pm", "10pm", "11pm"],
           datasets: [{
             label: "시간대별 댓글 작성 추이",
             data: this.commentTime,
@@ -167,27 +178,19 @@ export default {
             borderWidth: 2
           }]
         },
-        options: {
-          scales: {
-            yAxes: [{
-              ticks: {
-                /*    beginAtZero: true, */
-              }
-            }]
-          }
-        },
       });
     }, 300);
-
   },
+
   computed: {
     dateFormmat() {
       var dDate = this.detailDate + "";
       return dDate.substring(0, 4) + " - " + dDate.substring(4, 6) + " - " + dDate.substring(6, 8);
-    }
+    },
   },
 
   methods: {
+
     // Get Comment
     getComments(page) {
       const axios = require("axios");
@@ -216,6 +219,7 @@ export default {
           self.finalPage = res.data.final_page;
         });
     },
+
     //get label of Comments
     getCommentsInfo() {
       const axios = require("axios");
@@ -225,9 +229,10 @@ export default {
         .then(res => {
           this.commentsCount = res.data[0].comment_cnt;
           this.positiveCount = res.data[0].news_positive;
-          this.localCount = res.data[0].comment_cnt;
+          this.localCount = res.data[0].local_hit;
         })
     },
+
     // Get Chart Time
     getCommentsTime() {
       const axios = require("axios");
@@ -235,16 +240,36 @@ export default {
       formData.append("news_num", this.detailNum);
       axios.post("http://localhost:5000/api/get/comments_time", formData)
         .then(res => {
-          this.commentTime = res.data;
+          for (var i = 0; i < 24; i++) {
+            this.commentTime[i] = 0
+          }
           for (var i = 0; i < res.data.length; i++) {
-            this.commentTime[i] = res.data[i].hour_cnt;
+            this.commentTime[res.data[i].hour] = res.data[i].hour_cnt;
           }
         })
     },
+
+    // Get Tags
+    /*
+    getCommentsTime() {
+      const axios = require("axios");
+      let formData = new FormData();
+      formData.append("news_num", this.detailNum);
+      axios.post("http://localhost:5000/api/get/tags", formData)
+        .then(res => {
+          this.tags = res.data;
+        })
+    },
+    */
     // Show Regional sentiment
     showLocalFunc() {
       this.showLocal = !this.showLocal
-    }
+    },
+
+    // Change Comments Time Format
+    timeChang(time) {
+      return time.replace('T', '\n')
+    },
   }
 }
 </script>
@@ -252,6 +277,7 @@ export default {
 <style scoped>
 @import url("https://fonts.googleapis.com/css?family=Song+Myung&display=swap");
 @import url("https://fonts.googleapis.com/css?family=Noto+Serif+KR&display=swap");
+
 
 .posCenter {
   margin: 0 auto;
@@ -337,11 +363,164 @@ export default {
   min-height: 50px;
 }
 
+.newsCommentLocal {
+  margin-left: 10px;
+  color: blue;
+  font-size: 1rem;
+}
 
 .theme--light.v-pagination .v-pagination__item--active {
   color: black !important;
   border: 1px solid blue !important;
 }
+
+#newspaperContent {
+  column-count: 2 !important;
+  max-height: none;
+  height: auto;
+  overflow: visible;
+}
+
+.isLocalComment {
+  color: red;
+  font-weight: bold;
+}
+
+.pageButton_text {
+  margin-right: 5px;
+  margin-left: 5px;
+  height: 30%;
+  background-color: #ffffff;
+  border-radius: 3px;
+  border: 2px solid #dcdcdc;
+  display: inline-block;
+  cursor: pointer;
+  color: #826d73;
+  font-size: 16px;
+  padding: 3px 5px;
+  text-decoration: none;
+  color: black;
+}
+
+.thisPageClass {
+  color: black;
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.checks {
+  margin-top: 15px;
+  position: relative;
+  display: inline-block;
+  margin-left: 30px;
+}
+
+.checks input[type="checkbox"] {
+  /* 실제 체크박스는 화면에서 숨김 */
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0
+}
+
+.checks input[type="checkbox"]+label {
+  display: inline-block;
+  position: relative;
+  cursor: pointer;
+}
+
+.checks input[type="checkbox"]+label:before {
+  content: ' ';
+  display: inline-block;
+  width: 21px;
+  height: 21px;
+  line-height: 21px;
+  margin: -2px 8px 0 0;
+  text-align: center;
+  vertical-align: middle;
+  background: #fafafa;
+  border: 1px solid #cacece;
+  border-radius: 3px;
+  box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.05), inset 0px -15px 10px -12px rgba(0, 0, 0, 0.05);
+}
+
+.checks input[type="checkbox"]+label:active:before,
+.checks input[type="checkbox"]:checked+label:active:before {
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05), inset 0px 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.checks input[type="checkbox"]:checked+label:before {
+  content: '\2714';
+  color: #99a1a7;
+  text-shadow: 1px 1px #fff;
+  background: #e9ecee;
+  border-color: #adb8c0;
+  box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.05), inset 0px -15px 10px -12px rgba(0, 0, 0, 0.05), inset 15px 10px -12px rgba(255, 255, 255, 0.1);
+}
+
+.checks.small input[type="checkbox"]+label {
+  font-size: 12px;
+}
+
+.checks.small input[type="checkbox"]+label:before {
+  width: 17px;
+  height: 17px;
+  line-height: 17px;
+  font-size: 11px;
+}
+
+.checks.etrans input[type="checkbox"]+label {
+  padding-left: 30px;
+}
+
+.checks.etrans input[type="checkbox"]+label:before {
+  position: absolute;
+  left: 0;
+  top: 0;
+  margin-top: 0;
+  opacity: .6;
+  box-shadow: none;
+  border-color: #6cc0e5;
+  -webkit-transition: all .12s, border-color .08s;
+  transition: all .12s, border-color .08s;
+}
+
+.checks.etrans input[type="checkbox"]:checked+label:before {
+  position: absolute;
+  content: "";
+  width: 10px;
+  top: -5px;
+  left: 5px;
+  border-radius: 0;
+  opacity: 1;
+  background: transparent;
+  border-color: transparent #6cc0e5 #6cc0e5 transparent;
+  border-top-color: transparent;
+  border-left-color: transparent;
+  -ms-transform: rotate(45deg);
+  -webkit-transform: rotate(45deg);
+  transform: rotate(45deg);
+}
+
+.no-csstransforms .checks.etrans input[type="checkbox"]:checked+label:before {
+  content: "\2714";
+  top: 0;
+  left: 0;
+  width: 21px;
+  line-height: 21px;
+  color: #6cc0e5;
+  text-align: center;
+  border: 1px solid #6cc0e5;
+}
+
+.checks {
+  float: right;
+}
+
 
 @media (max-width: 600px) {
   #newspaperTitle {
@@ -358,55 +537,5 @@ export default {
     margin-left: 8%;
   }
 
-  #newspaperContent {
-    column-count: 2 !important;
-    max-height: none;
-    height: auto;
-    overflow: visible;
-  }
-
-  .thisPageClass {
-    color: black;
-    font-size: 1.8rem;
-    font-weight: bold;
-  }
-
-  .pageButton {
-    background: -webkit-gradient(linear, left top, left bottom, color-stop(0.05, #ffffff), color-stop(1, #f6f6f6));
-    background: -moz-linear-gradient(top, #ffffff 5%, #f6f6f6 100%);
-    background: -webkit-linear-gradient(top, #ffffff 5%, #f6f6f6 100%);
-    background: -o-linear-gradient(top, #ffffff 5%, #f6f6f6 100%);
-    background: -ms-linear-gradient(top, #ffffff 5%, #f6f6f6 100%);
-    background: linear-gradient(to bottom, #ffffff 5%, #f6f6f6 100%);
-    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ffffff', endColorstr='#f6f6f6', GradientType=0);
-    background-color: #ffffff;
-    -moz-border-radius: 3px;
-    -webkit-border-radius: 3px;
-    border-radius: 3px;
-    border: 2px solid #dcdcdc;
-    display: inline-block;
-    cursor: pointer;
-    color: #826d73;
-    font-family: Arial;
-    font-size: 16px;
-    padding: 6px 9px;
-    text-decoration: none;
-  }
-
-  .pageButton:hover {
-    background: -webkit-gradient(linear, left top, left bottom, color-stop(0.05, #f6f6f6), color-stop(1, #ffffff));
-    background: -moz-linear-gradient(top, #f6f6f6 5%, #ffffff 100%);
-    background: -webkit-linear-gradient(top, #f6f6f6 5%, #ffffff 100%);
-    background: -o-linear-gradient(top, #f6f6f6 5%, #ffffff 100%);
-    background: -ms-linear-gradient(top, #f6f6f6 5%, #ffffff 100%);
-    background: linear-gradient(to bottom, #f6f6f6 5%, #ffffff 100%);
-    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#f6f6f6', endColorstr='#ffffff', GradientType=0);
-    background-color: #f6f6f6;
-  }
-
-  .pageButton:active {
-    position: relative;
-    top: 1px;
-  }
 }
 </style>
