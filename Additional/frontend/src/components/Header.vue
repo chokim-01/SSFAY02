@@ -241,25 +241,6 @@ export default {
   padding-top: 4px;
 }
 
-<<<<<<< HEAD
-=======
-@media (min-width : 600px) {
-  .header
-  title {
-    font-size: 5rem;
-  }
-
-  .searchPart1 {
-    padding: 0 5px;
-    padding-top: 36px !important;
-  }
-
-  .searchPart2 {
-    padding-top: 40px;
-  }
-}
-
->>>>>>> 1ac1cb0ec73af6875f0dbe1b5b394e70c78483be
 .v-btn--active:before, .v-btn:focus:before, .v-btn:hover:before {
     background-color: #00000000;
 }
