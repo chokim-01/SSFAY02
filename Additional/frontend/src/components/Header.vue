@@ -9,21 +9,21 @@
           </v-flex>
           <v-flex class="searchPart1" xs4 sm1>
             <v-select
+              v-model="searchCat"
               :items="selectCat"
               label="검색 옵션"
               append-icon="fas fa-caret-down"
-              v-model="searchCat"
             >
             </v-select>
           </v-flex>
           <v-flex class="searchPart2" v-if="searchCat=='날짜'" xs8 sm3>
             <v-text-field
             v-model="searchKey"
-            readonly
             style="width: 90%; margin: 0 auto;"
             append-outer-icon="fas fa-search"
             @click:append-outer="SearchNews()"
             @click.stop="menu = !menu"
+            readonly
             ></v-text-field>
             <v-menu
             v-model="menu"
@@ -37,17 +37,17 @@
               next-icon="fas fa-chevron-right"
               no-title scrollable>
                 <v-spacer></v-spacer>
-                <v-btn flat color="primary" @click="menu = false">Cancel</v-btn>
-                <v-btn flat color="primary" @click="$refs.menu.save(date)">OK</v-btn>
+                <v-btn color="primary" @click="menu = false" flat>Cancel</v-btn>
+                <v-btn color="primary" @click="$refs.menu.save(date)" flat>OK</v-btn>
               </v-date-picker>
             </v-menu>
           </v-flex>
           <v-flex class="searchPart2" v-else xs8 sm3>
             <v-text-field
+            v-model="searchKey"
             style="width: 90%; margin: 0 auto;"
             placeholder="검색어를 입력하세요."
             append-outer-icon="fas fa-search"
-            v-model="searchKey"
             @click:append-outer="SearchNews()"
             ></v-text-field>
           </v-flex>
@@ -80,7 +80,6 @@
 </template>
 
 <script>
-import axios from "axios";
 import Server from "../server.js"
 import {store} from "../store.js"
 
@@ -117,7 +116,6 @@ export default {
         this.$store.state.searchChk = true;
         this.searchKey = "";
         this.searchCat = "";
-        return true;
       }
       else {
         if(this.searchKey == "" ) {
@@ -135,6 +133,9 @@ export default {
           this.searchCat = "";
         }
       }
+      if(location.pathname != "/"){
+        this.$router.push({path: "/"});
+      }
     },
     getNewsTitle() {
       const axios = require("axios");
@@ -150,7 +151,7 @@ export default {
       let formData = new FormData();
       formData.append("page", 1);
       formData.append("date", year+""+month+""+day);
-      axios.post("http://localhost:5000/api/get/news", formData)
+      Server(this.$store.state.SERVER_URL).post("/api/get/news", formData)
         .then(res => {
           for(var newsIdx in res.data) {
             this.newsTitle.push((parseInt(newsIdx)+1)+". "+res.data[newsIdx].news_title);
@@ -230,10 +231,12 @@ export default {
   text-overflow: ellipsis;
   margin-top: 10px;
 }
+
 .searchPart1 {
   padding-left: 15px;
   padding-bottom: 5px;
 }
+
 .searchPart2 {
   padding-top: 4px;
 }
