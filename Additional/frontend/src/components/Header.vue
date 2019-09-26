@@ -56,6 +56,8 @@
             <v-flex xs12 sm4>
               <v-btn class="headerBtn" to="/" flat> News </v-btn>
               <v-btn class="headerBtn" to="AboutUs" flat> About Us </v-btn>
+
+              <!-- chatbot -->
               <v-icon class="chatbotIcon" @click.stop="chk_view = !chk_view">far fa-comment-dots</v-icon>
               <v-menu class="chat" v-model="chk_view" :close-on-content-click="false" :nudge-width="200" offset-y>
                 <template v-slot:activator="{ on }"></template>
@@ -65,6 +67,7 @@
                   <textarea class="chattext" v-model="text" @keyup.enter="enter" name="content" rows="2" placeholder="입력하세요."></textarea>
                 </v-card>
               </v-menu>
+
             </v-flex>
             <v-flex hidden-xs-only sm3></v-flex>
             <v-flex xs12 sm5 id="realNewsTitle">
@@ -235,6 +238,34 @@ export default {
   padding-top: 4px;
 }
 
+.v-btn--active:before, .v-btn:focus:before, .v-btn:hover:before {
+    background-color: #00000000;
+}
+
+.chatbotIcon {
+  line-height: 15px;
+  margin-left: 10px;
+  font-size: 30px;
+}
+
+.chatbox {
+  padding: 10px;
+  height: 350px;
+  overflow-y:scroll;
+  background-color: #F2F2F2;
+}
+
+.chat {
+  width: 70%;
+  margin: auto;
+  border-radius: 10%;
+}
+
+.chattext {
+  width: 100%;
+  padding: 10px;
+}
+
 @media (min-width : 600px) {
   .header
   title {
@@ -249,31 +280,13 @@ export default {
   }
 }
 
-.v-btn--active:before, .v-btn:focus:before, .v-btn:hover:before {
-    background-color: #00000000;
+@media (max-width : 375px) {
+  .chat {
+    float: left;
+    width: 40%;
+  }
 }
 
-.chatbotIcon {
-  line-height: 15px;
-  margin-left: 10px;
-  font-size: 30px;
-}
 
-.chatbox {
-  height: 350px;
-  border: 1px solid black;
-  overflow-y:scroll;
-}
-
-.chat {
-  width: 15%;
-  margin: auto;
-}
-
-.chattext {
-  width: 80%;
-  border: 0;
-  outline: 0;
-}
 
 </style>
