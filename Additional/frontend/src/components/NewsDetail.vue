@@ -1,16 +1,20 @@
 <template>
 <v-layout row wrap>
-  <v-flex class="posCenter" xs12 sm8 mb-2>
+  <v-flex class="positionCenter" xs12 sm8 mb-2>
     <v-layout row wrap pb-4>
       <v-flex id="newspaperTitle" xs12>
         {{ detailTitle }}
       </v-flex>
+
+      <!-- Get Tags -->
       <v-flex class="text-xs-center" xs12 mb-4>
-        <v-chip v-for="idx in 6" :key="idx" color="red" outline>
-          <!--  임시 -->
-          # 블라블라
-        </v-chip>
+        <template v-for="tag in tags">
+          <v-chip color="red" outline>
+            {{tag.tag_name}}
+          </v-chip>
+        </template>
       </v-flex>
+
       <v-flex class="text-xs-right" xs12 px-4>{{dateFormmat}}</v-flex>
       <v-flex id="newspaperContent" xs12 pa-3>
         {{ detailContext }}
@@ -19,7 +23,7 @@
   </v-flex>
 
   <!-- Comments Chart -->
-  <v-flex id="newspaperGraph" xs12 mb-5 pa-3 >
+  <v-flex id="newspaperGraph" xs12 mb-5 pa-3>
     <v-layout row wrap>
       <v-flex xs12 sm1 />
       <v-flex xs12 sm5>
@@ -32,7 +36,7 @@
   </v-flex>
 
   <!--Comments Title  -->
-  <v-flex class="posCenter"  xs12 sm8 mb-5>
+  <v-flex class="positionCenter" xs12 sm8 mb-5>
     <v-card id="newsComment" flat>
       <v-layout class="mh50" row wrap>
         <v-flex xs12 sm5>
@@ -83,8 +87,10 @@
             </v-flex>
           </v-layout>
         </template>
+
+
       </v-list>
-      
+
       <!-- paging button -->
       <v-layout class="mh50 paging" row wrap>
         <v-flex class="text-xs-center" xs12 sm 12>
@@ -92,7 +98,7 @@
             <div class="pageButton_text" v-if="thisPage != 1" @click="getComments(1)">처음</div>
 
             <div class="pageButton_text" v-for="i in pageList">
-              <div class="text-xs-center thisPageClass pageButton" @click="getComments(i)"  v-if="i === thisPage">{{i}}</div>
+              <div class="text-xs-center thisPageClass pageButton" @click="getComments(i)" v-if="i === thisPage">{{i}}</div>
               <div class="pageButton" @click="getComments(i)" v-else>{{i}}</div>
             </div>
 
@@ -107,6 +113,9 @@
 </template>
 
 <script>
+import Server from "../server.js"
+import {store} from "../store.js"
+
 import Chart from "chart.js";
 export default {
   name: "NewsDetail",
@@ -120,7 +129,7 @@ export default {
       doughnutData: null,
       comments: [],
       pageList: [],
-      tags:[],
+      tags: [],
       thisPage: 1,
       finalPage: 0,
       commentsCount: 0,
@@ -133,10 +142,12 @@ export default {
   },
   created() {
     this.getComments(1);
+    this.getCommentsTags();
   },
   mounted() {
     this.getCommentsInfo();
     this.getCommentsTime();
+    this.getCommentsTags();
 
     // Get Chart
     setTimeout(() => {
@@ -177,7 +188,7 @@ export default {
           }]
         },
       });
-    }, 1000);
+    }, 500);
   },
 
   computed: {
@@ -188,16 +199,14 @@ export default {
   },
 
   methods: {
-
     // Get Comment
     getComments(page) {
-      const axios = require("axios");
       let formData = new FormData();
       this.thisPage = page;
       this.getPages(this.thisPage);
       formData.append("news_num", this.detailNum);
       formData.append("page", this.thisPage);
-      axios.post("http://localhost:5000/api/get/comments", formData)
+       Server(this.$store.state.SERVER_URL).post("/api/get/comments", formData)
         .then(res => {
           this.comments = res.data;
         })
@@ -205,13 +214,12 @@ export default {
 
     // Get Final Page Number and Page Number List
     getPages(page) {
-      const axios = require("axios");
       var self = this;
       var formData = new FormData();
       this.thisPage = page;
       formData.append("news_num", this.detailNum);
       formData.append("page", this.thisPage);
-      axios.post("http://localhost:5000/api/get/page_count", formData)
+      Server(this.$store.state.SERVER_URL).post("/api/get/page_count", formData)
         .then(res => {
           self.pageList = res.data.page_list;
           self.finalPage = res.data.final_page;
@@ -220,10 +228,9 @@ export default {
 
     //get label of Comments
     getCommentsInfo() {
-      const axios = require("axios");
       let formData = new FormData();
       formData.append("news_num", this.detailNum);
-      axios.post("http://localhost:5000/api/get/comments_label", formData)
+      Server(this.$store.state.SERVER_URL).post("api/get/comments_label", formData)
         .then(res => {
           this.commentsCount = res.data[0].comment_cnt;
           this.positiveCount = res.data[0].news_positive;
@@ -233,10 +240,9 @@ export default {
 
     // Get Chart Time
     getCommentsTime() {
-      const axios = require("axios");
       let formData = new FormData();
       formData.append("news_num", this.detailNum);
-      axios.post("http://localhost:5000/api/get/comments_time", formData)
+      Server(this.$store.state.SERVER_URL).post("/api/get/comments_time", formData)
         .then(res => {
           for (var i = 0; i < 24; i++) {
             this.commentTime[i] = 0
@@ -248,17 +254,15 @@ export default {
     },
 
     // Get Tags
-    /*
-    getCommentsTime() {
-      const axios = require("axios");
+    getCommentsTags() {
       let formData = new FormData();
       formData.append("news_num", this.detailNum);
-      axios.post("http://localhost:5000/api/get/tags", formData)
+      Server(this.$store.state.SERVER_URL).post("/api/get/tags", formData)
         .then(res => {
           this.tags = res.data;
         })
     },
-    */
+
     // Show Regional sentiment
     showLocalFunc() {
       this.showLocal = !this.showLocal
@@ -277,7 +281,7 @@ export default {
 @import url("https://fonts.googleapis.com/css?family=Noto+Serif+KR&display=swap");
 
 
-.posCenter {
+.positionCenter {
   margin: 0 auto;
 }
 
