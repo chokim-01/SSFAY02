@@ -83,10 +83,8 @@
             </v-flex>
           </v-layout>
         </template>
-
-
       </v-list>
-
+      
       <!-- paging button -->
       <v-layout class="mh50 paging" row wrap>
         <v-flex class="text-xs-center" xs12 sm 12>
@@ -179,7 +177,7 @@ export default {
           }]
         },
       });
-    }, 300);
+    }, 1000);
   },
 
   computed: {
