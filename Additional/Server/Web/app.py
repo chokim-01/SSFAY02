@@ -1,4 +1,4 @@
-import tensorflow as tf
+﻿import tensorflow as tf
 import Preprocessing
 import model as ml
 from config import DEFINES
@@ -330,7 +330,7 @@ def chat_test():
 
 
 def main():
-    app.run(debug=True)
+    app.run(debug=True, host="0.0.0.0")
 
 
 if __name__ == '__main__':
