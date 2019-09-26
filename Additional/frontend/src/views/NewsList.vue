@@ -15,14 +15,14 @@
     </v-layout>
     <div class="text-xs-center">
       <div>
-        <v-btn color="primary" fab small dark>
+        <v-btn color="primary" @click="movePage('back')" fab small dark>
             <v-icon>fas fa-chevron-left</v-icon>
         </v-btn>
         <v-btn color="primary"  style="width:88px;" round dark>
           <span v-if="isSearchPage" @click="chkSearchPage = !chkSearchPage">{{page}} / {{totalPage}}</span>
           <input v-else type="number" v-model="pageNum" @keyup.enter="getNewsList('page')" style="width:70px;">
         </v-btn>
-        <v-btn color="primary" fab small dark>
+        <v-btn color="primary" @click="movePage('next')" fab small dark>
             <v-icon>fas fa-chevron-right</v-icon>
         </v-btn>
       </div>
@@ -31,6 +31,9 @@
 </template>
 
 <script>
+import Server from "../server.js"
+import {store} from "../store.js"
+
 import NewsDetail from "@/components/NewsDetail.vue"
 
 export default {
@@ -45,6 +48,7 @@ export default {
       chkSearchPage: true,
       searchKey: this.$store.state.searchKey,
       searchCat: this.$store.state.searchCat,
+      dirPage: {"back": -1, "next": 1}
     }
   },
   components: {
@@ -74,7 +78,6 @@ export default {
   },
   methods: {
     getNewsList(opt) {
-      const axios = require("axios");
       if(this.$store.state.searchCat=='' || this.$store.state.searchCat=='전체'){
         // 전체 리스트 가져오기
         var today = new Date();
@@ -96,14 +99,17 @@ export default {
         let formData = new FormData();
         formData.append("page", this.page);
         formData.append("date", year+""+month+""+day);
-        axios.post("http://localhost:5000/api/get/news", formData)
+        Server(this.$store.state.SERVER_URL).post("/api/get/news", formData)
           .then(res => {
             this.newsList = res.data;
           })
 
-        axios.post("http://localhost:5000/api/get/news_count", formData)
+        Server(this.$store.state.SERVER_URL).post("/api/get/news_count", formData)
           .then(res => {
-            this.totalPage = Math.floor(res.data[0]["count(*)"]/5)+1;
+            this.totalPage = Math.floor(res.data[0]["count(*)"]/5);
+            if(res.data[0]["count(*)"]%5!=0){
+              this.totalPage += 1;
+            }
             if(this.chkSearchPage == false) {
               this.chkSearchPage = true;
             }
@@ -121,13 +127,16 @@ export default {
         formData.append("searchCat", this.searchCat);
         formData.append("searchKey", this.searchKey);
         formData.append("page", this.page);
-        axios.post("http://localhost:5000/api/get/search", formData)
+        Server(this.$store.state.SERVER_URL).post("/api/get/search", formData)
           .then(res => {
             this.newsList = res.data;
         })
-        axios.post("http://localhost:5000/api/get/search_count", formData)
+        Server(this.$store.state.SERVER_URL).post("/api/get/search_count", formData)
           .then(res => {
-            this.totalPage = Math.floor(res.data[0]["count(*)"]/5)+1;
+            this.totalPage = Math.floor(res.data[0]["count(*)"]/5);
+            if(res.data[0]["count(*)"]%5!=0){
+              this.totalPage += 1;
+            }
             if(this.chkSearchPage == false) {
               this.chkSearchPage = true;
             }
@@ -142,6 +151,16 @@ export default {
           detailDate: newsObj.news_date,
           detailNum: newsObj.news_num
         }});
+    },
+    movePage(dir) {
+      if(this.page==1 && dir=="back")
+        alert("첫 페이지입니다.");
+      else if(this.page==this.totalPage && dir=="next")
+        alert("마지막 페이지입니다.");
+      else {
+        this.pageNum = parseInt(this.page) + parseInt(this.dirPage[dir]);
+        this.getNewsList("page");
+      }
     }
   }
 }
