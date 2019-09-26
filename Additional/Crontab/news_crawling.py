@@ -166,32 +166,9 @@ def get_news_links(current_time):
 def load_data(news_link_list):
     # Get news data, comment data
     news_data, comments_data = get_news(news_link_list)
-    news_len = len(news_data)
 
-    print("load data...")
-    news_data_reset = [[_ for _ in range(4)] for _ in range(news_len)]
-
-    # Count of Deduplication
-    input_idx = 0
-
-    for news_idx in range(news_len):
-        flag = False
-
-        # Skip duplicate news
-        for news_before in range(news_idx):
-            if news_data[news_idx][0] == news_data_reset[news_before][0]:
-                flag = True
-                break
-
-        if flag:
-            continue
-
-        news_data_reset[input_idx] = news_data[news_idx]
-        input_idx += 1
-
-    # Deleted duplicate news contents, comments list
-    news_data_reset = news_data_reset[:input_idx]
     comments_len = len(comments_data)
+    print("load data...")
 
     # Comment data formmatting
     for cmt_idx in range(comments_len):
@@ -199,8 +176,9 @@ def load_data(news_link_list):
         comments_data[cmt_idx].append(int(0))
         comments_data[cmt_idx][0] = int(comments_data[cmt_idx][0])
 
-    print("load complete")
-    return news_data_reset, comments_data
+    print("formatting comments complete")
+
+    return news_data, comments_data
 
 
 def tokenize_mention(data_row):
