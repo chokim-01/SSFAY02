@@ -5,7 +5,7 @@ import conn.conn as conn
 
 # Get file path
 ROOT_PATH = os.path.dirname(os.path.abspath(__file__))
-STATIC_PATH = os.path.join(ROOT_PATH + "\\..\\..\\frontend", 'dist')
+STATIC_PATH = os.path.join(ROOT_PATH + "/../../frontend", 'dist')
 print(STATIC_PATH)
 app = Flask(__name__, static_folder=STATIC_PATH, static_url_path='')
 
@@ -162,6 +162,7 @@ def get_news_count_by_date(date):
 
     return result
 
+
 # Get news by tags
 @app.route("/api/get/tags", methods=["POST"])
 def get_tags():
@@ -169,26 +170,12 @@ def get_tags():
 
     news_num = int(request.form.get("news_num"))
 
-    sql = "select tag_name from tag where news_num = %s"
+    sql = "select tag_name from tag where news_num = %s limit 0,10"
 
     cursor.execute(sql, news_num)
     result = cursor.fetchall()
 
     return jsonify(result)
-
-# Get news by title
-@app.route("/api/get/news_title", methods=["POST"])
-def get_news_by_title():
-    cursor = conn.db().cursor()
-
-    title = int(request.form.get("title"))
-
-    sql = "select * from news where title like '%%s%"
-    cursor.execute(sql, title)
-    result = cursor.fetchall()
-
-    return jsonify(result)
-
 
 
 ###################################################
