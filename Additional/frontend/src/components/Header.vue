@@ -9,21 +9,21 @@
           </v-flex>
           <v-flex class="searchPart1" xs4 sm1>
             <v-select
+              v-model="searchCat"
               :items="selectCat"
               label="검색 옵션"
               append-icon="fas fa-caret-down"
-              v-model="searchCat"
             >
             </v-select>
           </v-flex>
           <v-flex class="searchPart2" v-if="searchCat=='날짜'" xs8 sm3>
             <v-text-field
             v-model="searchKey"
-            readonly
             style="width: 90%; margin: 0 auto;"
             append-outer-icon="fas fa-search"
             @click:append-outer="SearchNews()"
             @click.stop="menu = !menu"
+            readonly
             ></v-text-field>
             <v-menu
             v-model="menu"
@@ -37,17 +37,17 @@
               next-icon="fas fa-chevron-right"
               no-title scrollable>
                 <v-spacer></v-spacer>
-                <v-btn flat color="primary" @click="menu = false">Cancel</v-btn>
-                <v-btn flat color="primary" @click="$refs.menu.save(date)">OK</v-btn>
+                <v-btn color="primary" @click="menu = false" flat>Cancel</v-btn>
+                <v-btn color="primary" @click="$refs.menu.save(date)" flat>OK</v-btn>
               </v-date-picker>
             </v-menu>
           </v-flex>
           <v-flex class="searchPart2" v-else xs8 sm3>
             <v-text-field
+            v-model="searchKey"
             style="width: 90%; margin: 0 auto;"
             placeholder="검색어를 입력하세요."
             append-outer-icon="fas fa-search"
-            v-model="searchKey"
             @click:append-outer="SearchNews()"
             ></v-text-field>
           </v-flex>
@@ -56,6 +56,8 @@
             <v-flex xs12 sm4>
               <v-btn class="headerBtn" to="/" flat> News </v-btn>
               <v-btn class="headerBtn" to="AboutUs" flat> About Us </v-btn>
+
+              <!-- chatbot -->
               <v-icon class="chatbotIcon" @click.stop="chk_view = !chk_view">far fa-comment-dots</v-icon>
               <v-menu class="chat" v-model="chk_view" :close-on-content-click="false" :nudge-width="200" offset-y>
                 <template v-slot:activator="{ on }"></template>
@@ -65,6 +67,7 @@
                   <textarea class="chattext" v-model="text" @keyup.enter="enter" name="content" rows="2" placeholder="입력하세요."></textarea>
                 </v-card>
               </v-menu>
+
             </v-flex>
             <v-flex hidden-xs-only sm3></v-flex>
             <v-flex xs12 sm5 id="realNewsTitle">
@@ -77,7 +80,6 @@
 </template>
 
 <script>
-import axios from "axios";
 import Server from "../server.js"
 import {store} from "../store.js"
 
@@ -114,7 +116,6 @@ export default {
         this.$store.state.searchChk = true;
         this.searchKey = "";
         this.searchCat = "";
-        return true;
       }
       else {
         if(this.searchKey == "" ) {
@@ -132,6 +133,9 @@ export default {
           this.searchCat = "";
         }
       }
+      if(location.pathname != "/"){
+        this.$router.push({path: "/"});
+      }
     },
     getNewsTitle() {
       const axios = require("axios");
@@ -147,7 +151,7 @@ export default {
       let formData = new FormData();
       formData.append("page", 1);
       formData.append("date", year+""+month+""+day);
-      axios.post("http://localhost:5000/api/get/news", formData)
+      Server(this.$store.state.SERVER_URL).post("/api/get/news", formData)
         .then(res => {
           for(var newsIdx in res.data) {
             this.newsTitle.push((parseInt(newsIdx)+1)+". "+res.data[newsIdx].news_title);
@@ -172,7 +176,7 @@ export default {
 
       // chatbot comment
       Server(this.$store.state.SERVER_URL).post("/api/chat", form).then(res => {
-        select.innerHTML += "<p class='arrow_box_left'>" + JSON.stringify(res.data[0]["value"]) + "</p>"
+        select.innerHTML += "<p class='arrow_box_left'>" + JSON.stringify(res.data) + "</p>"
       }).catch(error => {
         console.log(error)
       }).then(()=>{
@@ -227,12 +231,42 @@ export default {
   text-overflow: ellipsis;
   margin-top: 10px;
 }
+
 .searchPart1 {
   padding-left: 15px;
   padding-bottom: 5px;
 }
+
 .searchPart2 {
   padding-top: 4px;
+}
+
+.v-btn--active:before, .v-btn:focus:before, .v-btn:hover:before {
+    background-color: #00000000;
+}
+
+.chatbotIcon {
+  line-height: 15px;
+  margin-left: 10px;
+  font-size: 30px;
+}
+
+.chatbox {
+  padding: 10px;
+  height: 350px;
+  overflow-y:scroll;
+  background-color: #F2F2F2;
+}
+
+.chat {
+  width: 70%;
+  margin: auto;
+  border-radius: 10%;
+}
+
+.chattext {
+  width: 100%;
+  padding: 10px;
 }
 
 @media (min-width : 600px) {
@@ -249,31 +283,13 @@ export default {
   }
 }
 
-.v-btn--active:before, .v-btn:focus:before, .v-btn:hover:before {
-    background-color: #00000000;
+@media (max-width : 375px) {
+  .chat {
+    float: left;
+    width: 40%;
+  }
 }
 
-.chatbotIcon {
-  line-height: 15px;
-  margin-left: 10px;
-  font-size: 30px;
-}
 
-.chatbox {
-  height: 350px;
-  border: 1px solid black;
-  overflow-y:scroll;
-}
-
-.chat {
-  width: 15%;
-  margin: auto;
-}
-
-.chattext {
-  width: 80%;
-  border: 0;
-  outline: 0;
-}
 
 </style>

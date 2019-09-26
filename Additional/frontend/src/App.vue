@@ -29,19 +29,21 @@ export default {
 
 .arrow_box_right {
 	position: relative;
-	background: #d5d5d5;
-	border: 2px solid #181c1f;
+	background: #E0E0F8;
   display: inline-block;
-  padding: 10px;
+  padding: 10px 15px 10px 15px;
+  max-width: 170px;
   float: right;
   clear: both;
   margin-top: 3px;
   margin-right: 15px;
+  border-radius: 5%;
+  word-break: break-all;
 }
 
 .arrow_box_right:after, .arrow_box:before {
-	left: 100%;
-	top: 50%;
+	right: -17px;
+	bottom: 5px;
 	border: solid transparent;
 	content: " ";
 	height: 0;
@@ -52,7 +54,7 @@ export default {
 
 .arrow_box_right:after {
 	border-color: rgba(213, 213, 213, 0);
-	border-left-color: #d5d5d5;
+	border-left-color: #E0E0F8;
 	border-width: 10px;
 	margin-top: -10px;
 }
@@ -66,19 +68,19 @@ export default {
 
 .arrow_box_left {
 	position: relative;
-	background: #d5d5d5;
-	border: 2px solid #181c1f;
+	background: #F8E0E0;
   display: inline-block;
-  padding: 10px;
+  padding: 10px 15px 10px 15px;
   float: left;
   clear: both;
+  border-radius: 10%;
   margin-top: 3px;
   margin-left: 15px;
 }
 
 .arrow_box_left:after, .arrow_box:before {
-	right: 100%;
-	top: 50%;
+  left: -17px;
+	bottom: 5px;
 	border: solid transparent;
 	content: " ";
 	height: 0;
@@ -89,7 +91,7 @@ export default {
 
 .arrow_box_left:after {
 	border-color: rgba(213, 213, 213, 0);
-	border-right-color: #d5d5d5;
+	border-right-color: #F8E0E0;
 	border-width: 10px;
 	margin-top: -10px;
 }
