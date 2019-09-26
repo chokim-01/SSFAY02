@@ -5,7 +5,7 @@ Vue.use(Vuex);
 
 export const store = new Vuex.Store({
   state: {
-    SERVER_URL: window.location.href,
+    SERVER_URL: "http://13.125.116.42:5000",
     searchKey: "",
     searchCat: "",
     searchChk: false

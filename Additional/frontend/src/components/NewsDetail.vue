@@ -1,6 +1,6 @@
 <template>
 <v-layout row wrap>
-  <v-flex class="posCenter" xs12 sm8 mb-2>
+  <v-flex class="positionCenter" xs12 sm8 mb-2>
     <v-layout row wrap pb-4>
       <v-flex id="newspaperTitle" xs12>
         {{ detailTitle }}
@@ -36,7 +36,7 @@
   </v-flex>
 
   <!--Comments Title  -->
-  <v-flex class="posCenter" xs12 sm8 mb-5>
+  <v-flex class="positionCenter" xs12 sm8 mb-5>
     <v-card id="newsComment" flat>
       <v-layout class="mh50" row wrap>
         <v-flex xs12 sm5>
@@ -281,7 +281,7 @@ export default {
 @import url("https://fonts.googleapis.com/css?family=Noto+Serif+KR&display=swap");
 
 
-.posCenter {
+.positionCenter {
   margin: 0 auto;
 }
 
