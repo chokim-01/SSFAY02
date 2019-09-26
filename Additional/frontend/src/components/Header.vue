@@ -173,7 +173,7 @@ export default {
 
       // chatbot comment
       Server(this.$store.state.SERVER_URL).post("/api/chat", form).then(res => {
-        select.innerHTML += "<p class='arrow_box_left'>" + JSON.stringify(res.data[0]["value"]) + "</p>"
+        select.innerHTML += "<p class='arrow_box_left'>" + JSON.stringify(res.data) + "</p>"
       }).catch(error => {
         console.log(error)
       }).then(()=>{
