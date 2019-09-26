@@ -162,6 +162,7 @@ def get_news_count_by_date(date):
 
     return result
 
+
 # Get news by tags
 @app.route("/api/get/tags", methods=["POST"])
 def get_tags():
@@ -175,20 +176,6 @@ def get_tags():
     result = cursor.fetchall()
 
     return jsonify(result)
-
-# Get news by title
-@app.route("/api/get/news_title", methods=["POST"])
-def get_news_by_title():
-    cursor = conn.db().cursor()
-
-    title = int(request.form.get("title"))
-
-    sql = "select * from news where title like '%%s%"
-    cursor.execute(sql, title)
-    result = cursor.fetchall()
-
-    return jsonify(result)
-
 
 
 ###################################################
