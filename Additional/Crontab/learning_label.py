@@ -24,7 +24,7 @@ def load_data():
     db = conn.db()
     cursor = db.cursor()
 
-    sql = "select comment_context, label_news, label_local from comments_train"
+    sql = "select comment_context, label_news, label_local from comments"
     cursor.execute(sql)
     result = cursor.fetchall()
 
@@ -56,7 +56,7 @@ def make_sparse_matrix():
     global train_docs, word_indices
 
     train_len = len(train_docs)
-    word_indices_len = len(word_indices)
+    word_indices_len = len(word_indices) + 1
 
     x_train = lil_matrix((train_len, word_indices_len), dtype=np.int64)
     y_train = np.zeros((train_len, 2))
@@ -78,15 +78,11 @@ def make_model(x_train, y_train):
     y_train_news = [row[0] for row in y_train]
     y_train_local = [row[1] for row in y_train]
 
-    lg = LogisticRegression()
-    news_model = lg.fit(x_train, y_train_news)
+    news_model = LogisticRegression().fit(x_train, y_train_news)
+    local_model = LogisticRegression().fit(x_train, y_train_local)
+
     pickle.dump(news_model, open("../Model/news_model_server.clf", "wb"))
-
-    lg = LogisticRegression()
-    local_model = lg.fit(x_train, y_train_local)
     pickle.dump(local_model, open("../Model/local_model_server.clf", "wb"))
-    lg.
-
     pickle.dump(word_indices, open("../Model/word_indices_server.clf", "wb"))
 
     print("[+] Make model")
