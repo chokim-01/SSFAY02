@@ -77,7 +77,6 @@
 </template>
 
 <script>
-import axios from "axios";
 import Server from "../server.js"
 import {store} from "../store.js"
 
@@ -149,7 +148,7 @@ export default {
       let formData = new FormData();
       formData.append("page", 1);
       formData.append("date", year+""+month+""+day);
-      axios.post("http://localhost:5000/api/get/news", formData)
+      Server(this.$store.state.SERVER_URL).post("/api/get/news", formData)
         .then(res => {
           for(var newsIdx in res.data) {
             this.newsTitle.push((parseInt(newsIdx)+1)+". "+res.data[newsIdx].news_title);
