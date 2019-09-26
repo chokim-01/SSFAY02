@@ -15,14 +15,14 @@
     </v-layout>
     <div class="text-xs-center">
       <div>
-        <v-btn color="primary" fab small dark>
+        <v-btn color="primary" @click="movePage('back')" fab small dark>
             <v-icon>fas fa-chevron-left</v-icon>
         </v-btn>
         <v-btn color="primary"  style="width:88px;" round dark>
           <span v-if="isSearchPage" @click="chkSearchPage = !chkSearchPage">{{page}} / {{totalPage}}</span>
           <input v-else type="number" v-model="pageNum" @keyup.enter="getNewsList('page')" style="width:70px;">
         </v-btn>
-        <v-btn color="primary" fab small dark>
+        <v-btn color="primary" @click="movePage('next')" fab small dark>
             <v-icon>fas fa-chevron-right</v-icon>
         </v-btn>
       </div>
@@ -45,6 +45,7 @@ export default {
       chkSearchPage: true,
       searchKey: this.$store.state.searchKey,
       searchCat: this.$store.state.searchCat,
+      dirPage: {"back": -1, "next": 1}
     }
   },
   components: {
@@ -103,7 +104,10 @@ export default {
 
         axios.post("http://localhost:5000/api/get/news_count", formData)
           .then(res => {
-            this.totalPage = Math.floor(res.data[0]["count(*)"]/5)+1;
+            this.totalPage = Math.floor(res.data[0]["count(*)"]/5);
+            if(res.data[0]["count(*)"]%5!=0){
+              this.totalPage += 1;
+            }
             if(this.chkSearchPage == false) {
               this.chkSearchPage = true;
             }
@@ -127,7 +131,10 @@ export default {
         })
         axios.post("http://localhost:5000/api/get/search_count", formData)
           .then(res => {
-            this.totalPage = Math.floor(res.data[0]["count(*)"]/5)+1;
+            this.totalPage = Math.floor(res.data[0]["count(*)"]/5);
+            if(res.data[0]["count(*)"]%5!=0){
+              this.totalPage += 1;
+            }
             if(this.chkSearchPage == false) {
               this.chkSearchPage = true;
             }
@@ -142,6 +149,16 @@ export default {
           detailDate: newsObj.news_date,
           detailNum: newsObj.news_num
         }});
+    },
+    movePage(dir) {
+      if(this.page==1 && dir=="back")
+        alert("첫 페이지입니다.");
+      else if(this.page==this.totalPage && dir=="next")
+        alert("마지막 페이지입니다.");
+      else {
+        this.pageNum = parseInt(this.page) + parseInt(this.dirPage[dir]);
+        this.getNewsList("page");
+      }
     }
   }
 }
