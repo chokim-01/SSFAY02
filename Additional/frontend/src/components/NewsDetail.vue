@@ -22,14 +22,21 @@
     </v-layout>
   </v-flex>
 
+
   <!-- Comments Chart -->
-  <v-flex id="newspaperGraph" xs12 mb-5 pa-3>
+  <v-flex class="positionCenter" xs12 sm8 mb-5 >
+    <hr>
+    <h1 id="textCenter">데이터 분석</h1>
+
     <v-layout row wrap>
       <v-flex xs12 sm1 />
-      <v-flex xs12 sm5>
+      <v-flex xs12 sm4>
+        <h2 class="chartTitle">댓글 긍/부정</h2>
         <canvas id="PNChart" width="300" height="300" />
       </v-flex>
-      <v-flex xs12 sm4 mt-5>
+      <v-flex xs12 sm2 />
+      <v-flex xs12 sm4 >
+        <h2 class="chartTitle" >시간대별 댓글 작성 추이</h2>
         <canvas id="TimeChart" width="300" height="300" />
       </v-flex>
     </v-layout>
@@ -37,6 +44,8 @@
 
   <!--Comments Title  -->
   <v-flex class="positionCenter" xs12 sm8 mb-5>
+    <hr>
+    <h1  id="textCenter">댓글 분석</h1>
     <v-card id="newsComment" flat>
       <v-layout class="mh50" row wrap>
         <v-flex xs12 sm5>
@@ -201,10 +210,10 @@ export default {
             borderColor: "#FA5882",
             backgroundColor: "#00000000",
             type: "line",
-            pointRadius: 0,
+            pointRadius: 4,
             fill: false,
             lineTension: 0,
-            borderWidth: 2
+            borderWidth: 5
           }]
         },
       });
@@ -339,6 +348,10 @@ export default {
   margin: 0 auto;
 }
 
+.divide{
+  margin: 0 auto;
+}
+
 .commentPN {
   height: 35px !important;
   overflow: hidden;
@@ -366,19 +379,23 @@ export default {
   height: 520px;
 }
 
-#newspaperGraph {
-  overflow: hidden;
+#textCenter {
   text-align: center;
 }
 
 #PNChart {
   margin: 0 auto;
-  margin-top: 30px;
 }
 
 #PNChart,
 #TimeChart {
   max-height: 300px;
+}
+
+.chartTitle{
+  text-align: center;
+  margin-top: 30px;
+  margin-bottom: 15px;
 }
 
 ::-webkit-scrollbar {
@@ -578,6 +595,7 @@ export default {
 }
 
 
+
 @media (max-width: 600px) {
   #newspaperTitle {
     font-size: 35px;
@@ -588,10 +606,5 @@ export default {
   }
 }
 
-@media (min-width: 600px) {
-  #PNChart {
-    margin-left: 8%;
-  }
 
-}
 </style>
