@@ -56,17 +56,35 @@
         <template v-for="comment in comments" class="cmtRow" v-if="showLocal">
           <v-layout class="mh50" row wrap>
             <v-flex class="newsCommentRow" xs12 sm2><b>{{ timeChang(comment.comment_time) }}</b></v-flex>
-            <v-flex :class="[ comment.label_local =='1' ? 'newsCommentRow isLocalComment' : 'newsCommentRow']" v-text="comment.comment_context" xs10 sm9></v-flex>
+            <v-flex :class="[ comment.label_local =='1' ? 'newsCommentRow isLocalComment' : 'newsCommentRow']" v-text="comment.comment_context" xs8 sm8></v-flex>
+
+            <!-- 댓글 긍/부정 -->
             <v-flex v-if="comment.label_news == '0'" xs2 sm1>
               <v-chip id="newsThumbs" text-color="red" label>
-                <v-icon right>fas fa-thumbs-down</v-icon>
+                <v-icon right @click="editCommentLabelNews(comment)">fas fa-thumbs-down</v-icon>
               </v-chip>
             </v-flex>
-            <v-flex xs2 sm1 v-else>
+
+            <v-flex v-else xs2 sm1>
               <v-chip id="newsThumbs" text-color="blue" label>
-                <v-icon right>fas fa-thumbs-up</v-icon>
+                <v-icon right @click="editCommentLabelNews(comment)">fas fa-thumbs-up</v-icon>
               </v-chip>
             </v-flex>
+
+
+            <!-- 지역감정 -->
+            <v-flex xs2 sm1 v-if="comment.label_local == '0'">
+              <v-chip id="newsThumbs" text-color="blue" label>
+                <v-icon right @click="editCommentLabelLocal(comment)">far fa-smile</v-icon>
+              </v-chip>
+            </v-flex>
+
+            <v-flex v-else xs2 sm1>
+              <v-chip id="newsThumbs" text-color="red" label>
+                <v-icon right @click="editCommentLabelLocal(comment)">far fa-angry</v-icon>
+              </v-chip>
+            </v-flex>
+
           </v-layout>
         </template>
 
@@ -114,7 +132,9 @@
 
 <script>
 import Server from "../server.js"
-import {store} from "../store.js"
+import {
+  store
+} from "../store.js"
 
 import Chart from "chart.js";
 export default {
@@ -206,7 +226,7 @@ export default {
       this.getPages(this.thisPage);
       formData.append("news_num", this.detailNum);
       formData.append("page", this.thisPage);
-       Server(this.$store.state.SERVER_URL).post("/api/get/comments", formData)
+      Server(this.$store.state.SERVER_URL).post("/api/get/comments", formData)
         .then(res => {
           this.comments = res.data;
         })
@@ -261,6 +281,40 @@ export default {
         .then(res => {
           this.tags = res.data;
         })
+    },
+
+    //edit Comment Logistic
+    editCommentLabelNews(comment) {
+      var self = this;
+      var form = new FormData();
+      form.append("num", comment.comment_num);
+      form.append("label_news", comment.label_news);
+
+      Server(this.$store.state.SERVER_URL).post("/api/edit/label_news", form)
+        .then(res => {
+          if (comment.label_news == 0) {
+            comment.label_news = 1;
+          } else {
+            comment.label_news = 0;
+          }
+        });
+    },
+
+    //edit Comment Local
+    editCommentLabelLocal(comment) {
+      var self = this;
+      var form = new FormData();
+      form.append("num", comment.comment_num);
+      form.append("label_local", comment.label_local);
+
+      Server(this.$store.state.SERVER_URL).post("/api/edit/label_local", form)
+        .then(res => {
+          if (comment.label_local == 0) {
+            comment.label_local = 1;
+          } else {
+            comment.label_local = 0;
+          }
+        });
     },
 
     // Show Regional sentiment
