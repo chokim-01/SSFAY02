@@ -1,5 +1,5 @@
 <template>
-<v-layout row wrap>
+<v-layout v-if="viewDetail" row wrap>
   <v-flex class="positionCenter" xs12 sm8 mb-2>
     <v-layout row wrap pb-4>
       <v-flex id="newspaperTitle" xs12>
@@ -121,10 +121,10 @@ export default {
   name: "NewsDetail",
   data() {
     return {
-      detailTitle: this.$route.params.detailTitle,
-      detailContext: this.$route.params.detailContext,
-      detailDate: this.$route.params.detailDate,
-      detailNum: this.$route.params.detailNum,
+      detailTitle: this.$store.state.oneNewsInfo["news_title"],
+      detailContext: this.$store.state.oneNewsInfo["news_context"],
+      detailDate: this.$store.state.oneNewsInfo["news_date"],
+      detailNum: this.$store.state.oneNewsInfo["news_num"],
       myDoughnutChart: null,
       doughnutData: null,
       comments: [],
@@ -196,6 +196,17 @@ export default {
       var dDate = this.detailDate + "";
       return dDate.substring(0, 4) + " - " + dDate.substring(4, 6) + " - " + dDate.substring(6, 8);
     },
+    viewDetail() {
+      this.detailTitle = this.$store.state.oneNewsInfo["news_title"];
+      this.detailContext = this.$store.state.oneNewsInfo["news_context"];
+      this.detailDate = this.$store.state.oneNewsInfo["news_date"];
+      this.detailNum = this.$store.state.oneNewsInfo["news_num"];
+      this.getComments(1);
+      this.getCommentsInfo();
+      this.getCommentsTime();
+      this.getCommentsTags();
+      return true;
+    }
   },
 
   methods: {
@@ -308,6 +319,7 @@ export default {
 
 #newspaperContent {
   font-family: "Noto Serif KR", serif;
+  font-size: 16px;
   overflow-y: scroll;
   height: 520px;
 }
@@ -523,7 +535,6 @@ export default {
   float: right;
 }
 
-
 @media (max-width: 600px) {
   #newspaperTitle {
     font-size: 35px;
@@ -538,6 +549,5 @@ export default {
   #PNChart {
     margin-left: 8%;
   }
-
 }
 </style>

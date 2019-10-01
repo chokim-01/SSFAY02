@@ -7,7 +7,8 @@ export const store = new Vuex.Store({
   state: {
     SERVER_URL: "http://13.125.116.42:5000",
     searchKey: "",
-    searchCat: "",
-    searchChk: false
+    searchCategory: "",
+    searchCheck: false,
+    oneNewsInfo: [""]
   },
 });
