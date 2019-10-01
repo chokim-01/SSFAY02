@@ -11,8 +11,8 @@ import conn.conn as conn
 # Get file path
 ROOT_PATH = os.path.dirname(os.path.abspath(__file__))
 STATIC_PATH = os.path.join(ROOT_PATH + "/../../frontend", 'dist')
-print(STATIC_PATH)
 app = Flask(__name__, static_folder=STATIC_PATH, static_url_path='')
+LOAD_PAGE_COUNT = 3
 
 # Set CORS
 cors = CORS(app, resources={
@@ -29,6 +29,22 @@ def main():
 ###################################################
 #   News section
 ###################################################
+# Get news from header
+@app.route("/api/get/head_news", methods=["POST"])
+def get_head_news():
+    cursor = conn.db().cursor()
+
+    date = int(request.form.get("date"))
+    page = int(request.form.get("page"))
+
+    sql = "select * from news where news_date = %s order by news_num limit %s"
+    cursor.execute(sql, (date, page))
+    result = cursor.fetchall()
+
+    return jsonify(result)
+
+
+
 # Get news
 @app.route("/api/get/news", methods=["POST"])
 def get_news():
@@ -36,10 +52,10 @@ def get_news():
 
     date = int(request.form.get("date"))
     page = int(request.form.get("page"))
-    limit = (page - 1) * 5
+    limit = (page - 1) * LOAD_PAGE_COUNT
 
-    sql = "select * from news where news_date = %s order by news_num limit %s, 5"
-    cursor.execute(sql, (date, limit))
+    sql = "select * from news where news_date = %s order by news_num limit %s, %s"
+    cursor.execute(sql, (date, limit, LOAD_PAGE_COUNT))
     result = cursor.fetchall()
 
     return jsonify(result)
@@ -64,15 +80,15 @@ def get_news_count():
 def get_search_news():
     cursor = conn.db().cursor()
 
-    category = request.form.get("searchCat")
+    category = request.form.get("searchCategory")
     keyword = request.form.get("searchKey")
     page = int(request.form.get("page"))
 
-    page = (page - 1) * 5
+    page = (page - 1) * LOAD_PAGE_COUNT
 
-    if category == "제목":
+    if category == "title":
         result = get_news_by_title(keyword, page)
-    elif category == "태그":
+    elif category == "tag":
         result = get_news_by_tags(keyword, page)
     else:
         result = get_news_by_date(keyword, page)
@@ -85,12 +101,12 @@ def get_search_news():
 def get_search_news_count():
     cursor = conn.db().cursor()
 
-    category = request.form.get("searchCat")
+    category = request.form.get("searchCategory")
     keyword = request.form.get("searchKey")
 
-    if category == "제목":
+    if category == "title":
         result = get_news_count_by_title(keyword)
-    elif category == "태그":
+    elif category == "tag":
         result = get_news_count_by_tags(keyword)
     else:
         result = get_news_count_by_date(keyword)
@@ -102,9 +118,9 @@ def get_search_news_count():
 def get_news_by_tags(tag, page):
     cursor = conn.db().cursor()
 
-    sql = "select * from news n, tag t where t.tag_name like %s and n.news_num = t.news_num limit %s, 5"
+    sql = "select * from news n, tag t where t.tag_name like %s and n.news_num = t.news_num limit %s, %s"
 
-    cursor.execute(sql, (tag, page))
+    cursor.execute(sql, (tag, page, LOAD_PAGE_COUNT))
     result = cursor.fetchall()
 
     return result
@@ -127,8 +143,8 @@ def get_news_by_title(title, page):
     cursor = conn.db().cursor()
     title = "%"+title+"%"
 
-    sql = "select * from news where news_title like %s limit %s, 5"
-    cursor.execute(sql, (title, page))
+    sql = "select * from news where news_title like %s limit %s, %s"
+    cursor.execute(sql, (title, page, LOAD_PAGE_COUNT))
     result = cursor.fetchall()
 
     return result
@@ -150,8 +166,8 @@ def get_news_count_by_title(title):
 def get_news_by_date(date, page):
     cursor = conn.db().cursor()
 
-    sql = "select * from news where news_date = %s limit %s, 5"
-    cursor.execute(sql, (date, page))
+    sql = "select * from news where news_date = %s limit %s, %s"
+    cursor.execute(sql, (date, page, LOAD_PAGE_COUNT))
     result = cursor.fetchall()
 
     return result
