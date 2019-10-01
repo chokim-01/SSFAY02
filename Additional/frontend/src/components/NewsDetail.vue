@@ -22,21 +22,31 @@
     </v-layout>
   </v-flex>
 
+
   <!-- Comments Chart -->
-  <v-flex id="newspaperGraph" xs12 mb-5 pa-3>
+  <v-flex class="positionCenter" xs12 sm8 mb-5 >
+    <hr>
+    <h1 id="textCenter">데이터 분석</h1>
+
     <v-layout row wrap>
       <v-flex xs12 sm1 />
-      <v-flex xs12 sm5>
+      <v-flex xs12 sm4>
+        <h2 class="chartTitle">댓글 긍/부정</h2>
         <canvas id="PNChart" width="300" height="300" />
       </v-flex>
-      <v-flex xs12 sm4 mt-5>
-        <canvas id="TimeChart" width="300" height="300" />
+      <v-flex xs12 sm2 />
+      <v-flex xs12 sm4 >
+        <h2 class="chartTitle" >시간대별 댓글 작성 추이</h2>
+        <canvas id="TimeChart" width="300" height="350" />
+        <h3 class="chartTitle" >뉴스 작성 시간 : {{detailTime}}</h3>
       </v-flex>
     </v-layout>
   </v-flex>
 
   <!--Comments Title  -->
   <v-flex class="positionCenter" xs12 sm8 mb-5>
+    <hr>
+    <h1  id="textCenter">댓글 분석</h1>
     <v-card id="newsComment" flat>
       <v-layout class="mh50" row wrap>
         <v-flex xs12 sm5>
@@ -56,17 +66,35 @@
         <template v-for="comment in comments" class="cmtRow" v-if="showLocal">
           <v-layout class="mh50" row wrap>
             <v-flex class="newsCommentRow" xs12 sm2><b>{{ timeChang(comment.comment_time) }}</b></v-flex>
-            <v-flex :class="[ comment.label_local =='1' ? 'newsCommentRow isLocalComment' : 'newsCommentRow']" v-text="comment.comment_context" xs10 sm9></v-flex>
+            <v-flex :class="[ comment.label_local =='1' ? 'newsCommentRow isLocalComment' : 'newsCommentRow']" v-text="comment.comment_context" xs8 sm8></v-flex>
+
+            <!-- 댓글 긍/부정 -->
             <v-flex v-if="comment.label_news == '0'" xs2 sm1>
               <v-chip id="newsThumbs" text-color="red" label>
-                <v-icon right>fas fa-thumbs-down</v-icon>
+                <v-icon right @click="editCommentLabelNews(comment)">fas fa-thumbs-down</v-icon>
               </v-chip>
             </v-flex>
-            <v-flex xs2 sm1 v-else>
+
+            <v-flex v-else xs2 sm1>
               <v-chip id="newsThumbs" text-color="blue" label>
-                <v-icon right>fas fa-thumbs-up</v-icon>
+                <v-icon right @click="editCommentLabelNews(comment)">fas fa-thumbs-up</v-icon>
               </v-chip>
             </v-flex>
+
+
+            <!-- 지역감정 -->
+            <v-flex xs2 sm1 v-if="comment.label_local == '0'">
+              <v-chip id="newsThumbs" text-color="blue" label>
+                <v-icon right @click="editCommentLabelLocal(comment)">far fa-smile</v-icon>
+              </v-chip>
+            </v-flex>
+
+            <v-flex v-else xs2 sm1>
+              <v-chip id="newsThumbs" text-color="red" label>
+                <v-icon right @click="editCommentLabelLocal(comment)">far fa-angry</v-icon>
+              </v-chip>
+            </v-flex>
+
           </v-layout>
         </template>
 
@@ -87,7 +115,6 @@
             </v-flex>
           </v-layout>
         </template>
-
 
       </v-list>
 
@@ -115,8 +142,8 @@
 <script>
 import Server from "../server.js"
 import {store} from "../store.js"
-
 import Chart from "chart.js";
+
 export default {
   name: "NewsDetail",
   data() {
@@ -125,6 +152,7 @@ export default {
       detailContext: this.$store.state.oneNewsInfo["news_context"],
       detailDate: this.$store.state.oneNewsInfo["news_date"],
       detailNum: this.$store.state.oneNewsInfo["news_num"],
+      detailTime:  this.$store.state.oneNewsInfo["news_type"],
       myDoughnutChart: null,
       doughnutData: null,
       comments: [],
@@ -181,10 +209,10 @@ export default {
             borderColor: "#FA5882",
             backgroundColor: "#00000000",
             type: "line",
-            pointRadius: 0,
+            pointRadius: 2,
             fill: false,
             lineTension: 0,
-            borderWidth: 2
+            borderWidth: 3
           }]
         },
       });
@@ -201,6 +229,7 @@ export default {
       this.detailContext = this.$store.state.oneNewsInfo["news_context"];
       this.detailDate = this.$store.state.oneNewsInfo["news_date"];
       this.detailNum = this.$store.state.oneNewsInfo["news_num"];
+      this.detailTime = this.$store.state.oneNewsInfo["news_type"]
       this.getComments(1);
       this.getCommentsInfo();
       this.getCommentsTime();
@@ -274,6 +303,40 @@ export default {
         })
     },
 
+    // Edit Comment Logistic
+    editCommentLabelNews(comment) {
+      var self = this;
+      var form = new FormData();
+      form.append("num", comment.comment_num);
+      form.append("label_news", comment.label_news);
+
+      Server(this.$store.state.SERVER_URL).post("/api/edit/label_news", form)
+        .then(res => {
+          if (comment.label_news == 0) {
+            comment.label_news = 1;
+          } else {
+            comment.label_news = 0;
+          }
+        });
+    },
+
+    // Edit Comment Local
+    editCommentLabelLocal(comment) {
+      var self = this;
+      var form = new FormData();
+      form.append("num", comment.comment_num);
+      form.append("label_local", comment.label_local);
+
+      Server(this.$store.state.SERVER_URL).post("/api/edit/label_local", form)
+        .then(res => {
+          if (comment.label_local == 0) {
+            comment.label_local = 1;
+          } else {
+            comment.label_local = 0;
+          }
+        });
+    },
+
     // Show Regional sentiment
     showLocalFunc() {
       this.showLocal = !this.showLocal
@@ -291,8 +354,11 @@ export default {
 @import url("https://fonts.googleapis.com/css?family=Song+Myung&display=swap");
 @import url("https://fonts.googleapis.com/css?family=Noto+Serif+KR&display=swap");
 
-
 .positionCenter {
+  margin: 0 auto;
+}
+
+.divide{
   margin: 0 auto;
 }
 
@@ -319,24 +385,27 @@ export default {
 
 #newspaperContent {
   font-family: "Noto Serif KR", serif;
-  font-size: 16px;
   overflow-y: scroll;
   height: 520px;
 }
 
-#newspaperGraph {
-  overflow: hidden;
+#textCenter {
   text-align: center;
 }
 
 #PNChart {
   margin: 0 auto;
-  margin-top: 30px;
 }
 
 #PNChart,
 #TimeChart {
   max-height: 300px;
+}
+
+.chartTitle{
+  text-align: center;
+  margin-top: 30px;
+  margin-bottom: 15px;
 }
 
 ::-webkit-scrollbar {
@@ -542,12 +611,6 @@ export default {
 
   #newsComment .v-list__tile {
     padding: 0px 0px !important;
-  }
-}
-
-@media (min-width: 600px) {
-  #PNChart {
-    margin-left: 8%;
   }
 }
 </style>
