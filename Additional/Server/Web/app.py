@@ -280,6 +280,50 @@ def get_comments_label():
     return jsonify(result)
 
 
+
+# Edit comment label news
+@app.route("/api/edit/label_news", methods=["POST"])
+def label_news_edit():
+    db = conn.db()
+    cursor = db.cursor()
+    num = request.form.get("num")
+    label = request.form.get("label_news")
+    label = int(label)
+    if label == 1:
+        label = 0
+    else:
+        label = 1
+
+    sql = "update comments set label_news =%s where comment_num=%s"
+    cursor.execute(sql, (label, num))
+    db.commit()
+    return ""
+
+
+# Edit comment label local
+@app.route("/api/edit/label_local", methods=["POST"])
+def label_local_edit():
+    db = conn.db()
+    cursor = db.cursor()
+
+    num = request.form.get("num")
+    label = request.form.get("label_local")
+    print(num)
+    print(label)
+    label = int(label)
+    if label == 1:
+        label = 0
+    else:
+        label = 1
+
+    sql = "update comments set label_local =%s where comment_num=%s"
+    cursor.execute(sql, (label, num))
+    db.commit()
+    return ""
+
+
+
+
 ###################################################
 #   Comments section
 ###################################################
