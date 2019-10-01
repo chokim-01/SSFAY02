@@ -275,6 +275,7 @@ export default {
   text-overflow: ellipsis;
   margin-top: 10px;
   padding-right: 2%;
+  cursor: pointer;
 }
 
 .searchPart1 {
