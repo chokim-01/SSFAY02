@@ -1,6 +1,6 @@
 <template>
   <div>
-    <v-layout v-if="this.$store.state.searchChk">
+    <v-layout v-if="this.$store.state.searchCheck">
       <v-flex class="text-xs-right">{{ findKey }}</v-flex>
     </v-layout>
     <v-layout class="content" row wrap>
@@ -10,7 +10,7 @@
           </span>
           <p><span class="headline hl4">{{newsOne.news_title}}</span></p>
         </div>
-        <p class="newsContent" v-html="newsOne.news_context"></p>
+        <div class="newsContent" >{{newsOne.news_context}}</div>
       </v-flex>
     </v-layout>
     <div class="text-xs-center">
@@ -19,7 +19,7 @@
             <v-icon>fas fa-chevron-left</v-icon>
         </v-btn>
         <v-btn color="primary"  style="width:88px;" round dark>
-          <span v-if="isSearchPage" @click="chkSearchPage = !chkSearchPage">{{page}} / {{totalPage}}</span>
+          <span v-if="isSearchPage" @click="checkSearchPage = !checkSearchPage">{{page}} / {{totalPage}}</span>
           <input v-else type="number" v-model="pageNum" @keyup.enter="getNewsList('page')" style="width:70px;">
         </v-btn>
         <v-btn color="primary" @click="movePage('next')" fab small dark>
@@ -45,10 +45,11 @@ export default {
       searchPage: 1,
       pageNum: "",
       newsList: [{news_context:"", news_date:"", news_num:"", news_title:""}],
-      chkSearchPage: true,
+      checkSearchPage: true,
       searchKey: this.$store.state.searchKey,
-      searchCat: this.$store.state.searchCat,
-      dirPage: {"back": -1, "next": 1}
+      searchCategory: this.$store.state.searchCategory,
+      directPage: {"back": -1, "next": 1},
+      loadCount: 3
     }
   },
   components: {
@@ -56,29 +57,29 @@ export default {
   },
   mounted() {
     this.getNewsList();
-    this.$store.state.searchChk = false;
+    this.$store.state.searchCheck = false;
   },
   computed: {
     findKey() {
       if(this.searchKey != this.$store.state.searchKey) {
         this.searchKey = this.$store.state.searchKey;
-        this.searchCat = this.$store.state.searchCat;
+        this.searchCategory = this.$store.state.searchCategory;
         this.getNewsList();
       }
 
-      if(this.searchCat == "전체")
-        var str = "["+this.searchCat+"] 검색한 결과입니다." ;
+      if(this.searchCategory == "전체")
+        var str = "["+this.searchCategory+"] 검색한 결과입니다." ;
       else
-        var str = "["+this.searchCat+"] ' "+this.searchKey+" '(으)로 검색한 결과입니다." ;
+        var str = "["+this.searchCategory+"] ' "+this.searchKey+" '(으)로 검색한 결과입니다." ;
       return str;
     },
     isSearchPage() {
-      return this.chkSearchPage;
+      return this.checkSearchPage;
     }
   },
   methods: {
     getNewsList(opt) {
-      if(this.$store.state.searchCat=='' || this.$store.state.searchCat=='전체'){
+      if(this.$store.state.searchCategory=='' || this.$store.state.searchCategory=='전체'){
         // 전체 리스트 가져오기
         var today = new Date();
         var day = today.getDate() - 1; // 어제 기사 가져오기
@@ -87,14 +88,19 @@ export default {
 
         if(month<10) month = "0" + month;
 
-        day-=7; // 나중에 지울것
-
         if(opt == "page") {
           this.page = this.pageNum;
         }
         else {
           this.page = 1;
         }
+
+        /* 나중에 삭제해야함 */
+            year = "2019";
+            month = "09";
+            day = "22";
+        /* */
+
 
         let formData = new FormData();
         formData.append("page", this.page);
@@ -106,12 +112,12 @@ export default {
 
         Server(this.$store.state.SERVER_URL).post("/api/get/news_count", formData)
           .then(res => {
-            this.totalPage = Math.floor(res.data[0]["count(*)"]/5);
-            if(res.data[0]["count(*)"]%5!=0){
+            this.totalPage = Math.floor(res.data[0]["count(*)"]/this.loadCount);
+            if(res.data[0]["count(*)"]%this.loadCount!=0){
               this.totalPage += 1;
             }
-            if(this.chkSearchPage == false) {
-              this.chkSearchPage = true;
+            if(this.checkSearchPage == false) {
+              this.checkSearchPage = true;
             }
           })
       }
@@ -124,7 +130,7 @@ export default {
           this.page = 1;
         }
         let formData = new FormData();
-        formData.append("searchCat", this.searchCat);
+        formData.append("searchCategory", this.searchCategory);
         formData.append("searchKey", this.searchKey);
         formData.append("page", this.page);
         Server(this.$store.state.SERVER_URL).post("/api/get/search", formData)
@@ -133,24 +139,19 @@ export default {
         })
         Server(this.$store.state.SERVER_URL).post("/api/get/search_count", formData)
           .then(res => {
-            this.totalPage = Math.floor(res.data[0]["count(*)"]/5);
-            if(res.data[0]["count(*)"]%5!=0){
+            this.totalPage = Math.floor(res.data[0]["count(*)"]/this.loadCount);
+            if(res.data[0]["count(*)"]%this.loadCount!=0){
               this.totalPage += 1;
             }
-            if(this.chkSearchPage == false) {
-              this.chkSearchPage = true;
+            if(this.checkSearchPage == false) {
+              this.checkSearchPage = true;
             }
         })
       }
     },
     moveDetail(newsObj) {
-      this.$router.push({name: "NewsDetail",
-        params: {
-          detailTitle: newsObj.news_title,
-          detailContext: newsObj.news_context,
-          detailDate: newsObj.news_date,
-          detailNum: newsObj.news_num
-        }});
+      this.$store.state.oneNewsInfo = newsObj;
+      this.$router.push({path: "NewsDetail"});
     },
     movePage(dir) {
       if(this.page==1 && dir=="back")
@@ -158,7 +159,7 @@ export default {
       else if(this.page==this.totalPage && dir=="next")
         alert("마지막 페이지입니다.");
       else {
-        this.pageNum = parseInt(this.page) + parseInt(this.dirPage[dir]);
+        this.pageNum = parseInt(this.page) + parseInt(this.directPage[dir]);
         this.getNewsList("page");
       }
     }
@@ -176,24 +177,21 @@ export default {
     box-sizing: content-box !important;
 }
 
-.newsContent {
-  font-family: "Noto Serif KR", serif;
-}
-
 .collumn {
     text-decoration: none;
     color: black;
     font-size: 14px;
     line-height: 20px;
-    width: 17.5%;
+    width: 30.5%;
     display: inline-block;
     padding: 0 1%;
     vertical-align: top;
     margin-bottom: 20px;
     transition: all 0.7s;
-    max-height: 800px;
-    overflow: hidden;
-    text-overflow: ellipsis;
+}
+
+.collumn:hover{
+  box-shadow: 4px 4px 10px 4px gray;
 }
 
 .collumn + .collumn {
@@ -381,9 +379,17 @@ export default {
     width: 100%;
 }
 
+.head {
+  height: 170px;
+}
+
 @media only all and (max-width: 1300px) {
     .weatherforcastbox {
         display: none;
+    }
+
+    .head {
+      height: 170px;
     }
 }
 
@@ -391,17 +397,25 @@ export default {
     .collumn {
         width: 31%;
     }
+
+    .head {
+      height: 180px;
+    }
 }
 
 @media only all and (max-width: 900px) {
     .collumn {
         width: 47%;
     }
+
+    .head {
+      height: 170px;
+    }
 }
 
 @media only all and (max-width: 600px) {
     .collumn {
-        width: 100%;
+        width: 98%;
     }
 
     .collumn + .collumn {
@@ -414,6 +428,10 @@ export default {
         font-size: 60px;
         line-height: 54px;
         overflow: hidden;
+    }
+
+    .head {
+      height: 160px;
     }
 }
 </style>
@@ -431,5 +449,19 @@ export default {
 .v-carousel__next .v-btn,
 .v-carousel__prev .v-btn {
   color: black !important;
+}
+
+.newsContent {
+  font-family: "Noto Serif KR", serif;
+  font-size: 16px;
+  line-height: 1.5em;
+  white-space: pre-wrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  height: 37.5em;
+  -webkit-line-clamp: 25;
+  -webkit-box-orient: vertical;
+  word-wrap: break-word;
 }
 </style>
