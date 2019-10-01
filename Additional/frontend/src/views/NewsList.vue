@@ -10,7 +10,7 @@
           </span>
           <p><span class="headline hl4">{{newsOne.news_title}}</span></p>
         </div>
-        <div class="newsContent" >{{newsOne.news_context}}</div>
+        <div class="newsContent" v-html="newsOne.news_context"></div>
       </v-flex>
     </v-layout>
     <div class="text-xs-center">
@@ -67,10 +67,10 @@ export default {
         this.getNewsList();
       }
 
-      if(this.searchCategory == "전체")
-        var str = "["+this.searchCategory+"] 검색한 결과입니다." ;
+      if(this.searchCategory == "all")
+        var str = "["+this.$store.state.searchLabel[0][this.searchCategory]+"] 검색한 결과입니다." ;
       else
-        var str = "["+this.searchCategory+"] ' "+this.searchKey+" '(으)로 검색한 결과입니다." ;
+        var str = "["+this.$store.state.searchLabel[0][this.searchCategory]+"] ' "+this.searchKey+" '(으)로 검색한 결과입니다." ;
       return str;
     },
     isSearchPage() {
@@ -79,7 +79,7 @@ export default {
   },
   methods: {
     getNewsList(opt) {
-      if(this.$store.state.searchCategory=='' || this.$store.state.searchCategory=='전체'){
+      if(this.$store.state.searchCategory=='' || this.$store.state.searchCategory=='all'){
         // 전체 리스트 가져오기
         var today = new Date();
         var day = today.getDate() - 1; // 어제 기사 가져오기
@@ -192,6 +192,7 @@ export default {
 
 .collumn:hover{
   box-shadow: 4px 4px 10px 4px gray;
+  cursor: pointer;
 }
 
 .collumn + .collumn {

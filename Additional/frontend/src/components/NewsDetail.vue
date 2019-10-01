@@ -16,8 +16,7 @@
       </v-flex>
 
       <v-flex class="text-xs-right" xs12 px-4>{{dateFormmat}}</v-flex>
-      <v-flex id="newspaperContent" xs12 pa-3>
-        {{ detailContext }}
+      <v-flex id="newspaperContent" v-html="detailContext" xs12 pa-3>
       </v-flex>
     </v-layout>
   </v-flex>
@@ -216,7 +215,7 @@ export default {
           }]
         },
       });
-    }, 500);
+    }, 800);
   },
 
   computed: {
