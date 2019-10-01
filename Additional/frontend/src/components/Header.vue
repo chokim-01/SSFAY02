@@ -63,8 +63,23 @@
                 <template v-slot:activator="{ on }"></template>
 
                 <v-card>
-                  <v-flex class="chatbox"></v-flex>
-                  <textarea class="chattext" v-model="text" @keyup.enter="enter" name="content" rows="2" placeholder="입력하세요."></textarea>
+                  <v-flex>
+                    <div class='chatbox'>
+                      <div class='talk'></div>
+
+                      <div class='loadIcon'>
+                        <div class="loader" v-if="load">
+                         <div class="circle"></div>
+                         <div class="circle"></div>
+                         <div class="circle"></div>
+                         <div class="circle"></div>
+                         <div class="circle"></div>
+                        </div>
+                      </div>
+                    </div>
+                  </v-flex>
+                  <textarea class="chattext" v-model="text" @keyup.13="enter" name="content" rows="2" placeholder="입력하세요."></textarea>
+                  <i class="send far fa-paper-plane" @click="enter"></i>
                 </v-card>
               </v-menu>
 
@@ -97,7 +112,8 @@ export default {
       selectCat: ['전체', '제목', '태그', '날짜'],
       menu: false,
       chk_view: false,
-      text: ""
+      text: "",
+      load: false
     }
   },
   mounted() {
@@ -159,16 +175,13 @@ export default {
         })
     },
     enter(){
-      if(this.check){
-        this.check = !this.check
-        return ;
-      }
-
-      this.check = !this.check
-
       // user comment
-      var select = document.querySelector('.chatbox')
+      this.load = true
+      console.log(this.load)
+      var select = document.querySelector('.talk')
+
       select.innerHTML += "<p class='arrow_box_right'>"+ this.text +"</p></br>"
+      document.querySelector('.chattext').value = ''
 
       // form data
       var form = new FormData()
@@ -178,13 +191,13 @@ export default {
       Server(this.$store.state.SERVER_URL).post("/api/chat", form).then(res => {
         select.innerHTML += "<p class='arrow_box_left'>" + JSON.stringify(res.data) + "</p>"
       }).catch(error => {
-        console.log(error)
+
       }).then(()=>{
+        this.load = false
         select.scrollTop = select.scrollHeight
-        document.querySelector('.chattext').value = ''
       })
 
-      this.text = ""
+      this.text = null
     }
   }
 
@@ -254,19 +267,117 @@ export default {
 .chatbox {
   padding: 10px;
   height: 350px;
-  overflow-y:scroll;
   background-color: #F2F2F2;
+}
+
+.talk {
+  width:100%;
+  max-height: 300px;
+  overflow-y:scroll;
+  overflow-x:hidden;
 }
 
 .chat {
   width: 70%;
+  height: auto;
   margin: auto;
   border-radius: 10%;
 }
 
 .chattext {
-  width: 100%;
-  padding: 10px;
+  width: 88%;
+}
+
+.send {
+  float: right;
+  font-size: 30px;
+  margin-top: 5px;
+  margin-right: 15px;
+}
+
+.loader {
+   // transform: translateX(-50%) translateY(-50%);
+   width: 50px;
+   height: 50px;
+   margin: auto;
+   float: left;
+   clear: both;
+   margin-left: 30px;
+   margin-bottom: -10px;
+}
+
+.loader .circle {
+   position: absolute;
+   width: 20px;
+   height: 20px;
+   opacity: 0;
+   transform: rotate(225deg);
+   animation-iteration-count: infinite;
+   animation-name: orbit;
+   animation-duration: 4s;
+}
+
+.loader .circle:after {
+   content: "";
+   position: absolute;
+   width: 4px;
+   height: 4px;
+   border-radius: 5px;
+   background: #828282;
+   box-shadow: 0 0 9px rgba(255, 255, 255, 0.7);
+}
+
+.loader .circle:nth-child(2) {
+   animation-delay: 240ms;
+}
+
+.loader .circle:nth-child(3) {
+   animation-delay: 480ms;
+}
+
+.loader .circle:nth-child(4) {
+   animation-delay: 720ms;
+}
+
+.loader .circle:nth-child(5) {
+   animation-delay: 960ms;
+}
+
+@keyframes orbit {
+   0% {
+       transform: rotate(225deg);
+       opacity: 1;
+       animation-timing-function: ease-out;
+   }
+   7% {
+       transform: rotate(345deg);
+       animation-timing-function: linear;
+   }
+   30% {
+       transform: rotate(455deg);
+       animation-timing-function: ease-in-out;
+   }
+   39% {
+       transform: rotate(690deg);
+       animation-timing-function: linear;
+   }
+   70% {
+       transform: rotate(815deg);
+       opacity: 1;
+       animation-timing-function: ease-out;
+   }
+   75% {
+       transform: rotate(945deg);
+       animation-timing-function: ease-out;
+   }
+   76% {
+       transform: rotate(945deg);
+       opacity: 0;
+   }
+   100% {
+       transform: rotate(945deg);
+       opacity: 0;
+   }
 }
 
 @media (min-width : 600px) {
@@ -274,10 +385,12 @@ export default {
   title {
     font-size: 5rem;
   }
+
   .searchPart1 {
     padding: 0 5px;
     padding-top: 36px !important;
   }
+
   .searchPart2 {
     padding-top: 40px;
   }
@@ -289,7 +402,4 @@ export default {
     width: 40%;
   }
 }
-
-
-
 </style>
