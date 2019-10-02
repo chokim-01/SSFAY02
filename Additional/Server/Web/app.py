@@ -1,12 +1,11 @@
-﻿import tensorflow as tf
+﻿from flask import Flask, jsonify, request
+from flask_cors import CORS
+from config import DEFINES
+import conn.conn as conn
+import tensorflow as tf
 import Preprocessing
 import model as ml
-from config import DEFINES
-
-from flask import Flask, jsonify, request
-from flask_cors import CORS
 import os
-import conn.conn as conn
 
 # Get file path
 ROOT_PATH = os.path.dirname(os.path.abspath(__file__))

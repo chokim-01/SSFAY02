@@ -10,7 +10,6 @@ import json
 import time
 import bs4
 import re
-import sys
 
 
 # Load Model using pickle
