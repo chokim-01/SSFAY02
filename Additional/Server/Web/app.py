@@ -1,12 +1,11 @@
-﻿import tensorflow as tf
+﻿from flask import Flask, jsonify, request
+from flask_cors import CORS
+from config import DEFINES
+import conn.conn as conn
+import tensorflow as tf
 import Preprocessing
 import model as ml
-from config import DEFINES
-
-from flask import Flask, jsonify, request
-from flask_cors import CORS
 import os
-import conn.conn as conn
 
 # Get file path
 ROOT_PATH = os.path.dirname(os.path.abspath(__file__))
@@ -118,7 +117,7 @@ def get_search_news_count():
 def get_news_by_tags(tag, page):
     cursor = conn.db().cursor()
 
-    sql = "select * from news n, tag t where t.tag_name like %s and n.news_num = t.news_num limit %s, %s"
+    sql = "select * from news n, newstag t where t.newstag_name like %s and n.news_num = t.news_num limit %s, %s"
 
     cursor.execute(sql, (tag, page, LOAD_PAGE_COUNT))
     result = cursor.fetchall()
@@ -130,7 +129,7 @@ def get_news_by_tags(tag, page):
 def get_news_count_by_tags(tag):
     cursor = conn.db().cursor()
 
-    sql = "select count(*) from news n, tag t where t.tag_name like %s and n.news_num = t.news_num"
+    sql = "select count(*) from news n, newstag t where t.newstag_name like %s and n.news_num = t.news_num"
 
     cursor.execute(sql, tag)
     result = cursor.fetchall()
@@ -183,21 +182,57 @@ def get_news_count_by_date(date):
 
     return result
 
+###################################################
+#   Cloud section
+###################################################
 
-# Get news by tags
-@app.route("/api/get/tags", methods=["POST"])
-def get_tags():
+# Get news by newstags
+@app.route("/api/get/newstags", methods=["POST"])
+def get_newstags():
     cursor = conn.db().cursor()
 
     news_num = int(request.form.get("news_num"))
 
-    sql = "select tag_name from tag where news_num = %s limit 0,10"
+    sql = "select newstag_name from newstag where news_num = %s limit 0,10"
 
     cursor.execute(sql, news_num)
     result = cursor.fetchall()
 
     return jsonify(result)
 
+
+# Get news_tag for news cloud
+@app.route("/api/get/news_cloud", methods=["POST"])
+def get_news_cloud():
+    cursor = conn.db().cursor()
+
+    news_num = int(request.form.get("news_num"))
+
+    sql = "select newstag_name as newstagname, newstag_count as newstagcount from newstag where news_num = %s"
+    cursor.execute(sql, news_num)
+    result = cursor.fetchall()
+
+    return jsonify(result)
+
+
+# Get comments for news cloud
+@app.route("/api/get/comments_cloud", methods=["POST"])
+def get_comments_cloud():
+    cursor = conn.db().cursor()
+
+    news_num = int(request.form.get("news_num"))
+
+    sql = "select commentstag_name as commentstagname, commentstag_count as commentstagcount" \
+          " from commentstag where news_num = %s"
+    cursor.execute(sql, news_num)
+    result = cursor.fetchall()
+
+    return jsonify(result)
+
+
+###################################################
+#   Cloud section
+###################################################
 
 ###################################################
 #   Comments section
