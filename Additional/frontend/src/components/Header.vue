@@ -61,19 +61,16 @@
               <v-btn class="headerButton" to="/" flat> News </v-btn>
               <v-btn class="headerButton" to="AboutUs" flat> About Us </v-btn>
 
-              <!-- chatbot1 -->
-              <v-icon class="chatbotIcon" @click.stop="check_bot_view = !check_bot_view">far fa-comment-dots</v-icon>
-
-              <!-- chatbot2 -->
-              <v-icon class="chatIcon" @click.stop="check_chat_view = !check_chat_view">far fa-comments</v-icon>
-
-              <v-menu class="chat" v-model="check_bot_view" :close-on-content-click="false" :nudge-width="200" offset-y>
+              <!-- chatbot -->
+              <v-icon class="chatbotIcon" @click.stop="check_view = !check_view">far fa-comment-dots</v-icon>
+              <v-menu class="chat" v-model="check_view" :close-on-content-click="false" :nudge-width="200" offset-y>
                 <template v-slot:activator="{ on }"></template>
 
                 <v-card>
                   <v-flex>
                     <div class='chatbox'>
-                      <div class='botTalk'></div>
+                      <div class='talk'></div>
+
                       <div class='loadIcon'>
                         <div class="loader" v-if="load">
                          <div class="circle"></div>
@@ -85,24 +82,11 @@
                       </div>
                     </div>
                   </v-flex>
-                  <textarea class="chattext" v-model="text" @keyup.13="enterBot" name="content" rows="2" placeholder="입력하세요."></textarea>
-                  <i class="send far fa-paper-plane" @click="enterBot"></i>
+                  <textarea class="chattext" v-model="text" @keyup.13="enter" name="content" rows="2" placeholder="입력하세요."></textarea>
+                  <i class="send far fa-paper-plane" @click="enter"></i>
                 </v-card>
               </v-menu>
 
-              <v-menu class="chat" v-model="check_chat_view" :close-on-content-click="false" :nudge-width="200" offset-y>
-                <template v-slot:activator="{ on }"></template>
-
-                <v-card>
-                  <v-flex>
-                    <div class='chatbox'>
-                      <div class='chatTalk'></div>
-                    </div>
-                  </v-flex>
-                  <textarea class="chattext" v-model="text" @keyup.13="enterChat" name="content" rows="2" placeholder="입력하세요."></textarea>
-                  <i class="send far fa-paper-plane" @click="enterChat"></i>
-                </v-card>
-              </v-menu>
             </v-flex>
             <v-flex hidden-xs-only sm4></v-flex>
             <v-flex xs12 sm4 id="realNewsTitle" >
@@ -139,8 +123,7 @@ export default {
         {label: "날짜", value: "date"}
       ],
       menu: false,
-      check_bot_view: false,
-      check_chat_view: false,
+      check_view: false,
       text: "",
       load: false
     }
@@ -182,21 +165,17 @@ export default {
         this.$router.push({path: "/"});
       }
     },
-
     getNewsTitle() {
       const axios = require("axios");
-      var today = new Date();
-      var day = today.getDate() - 1; // 어제 기사 가져오기
-      var month = today.getMonth() + 1;
-      var year = today.getFullYear();
-
-      if(month<10) month = "0" + month;
-
-      /* 나중에 삭제해야함 */
-          year = "2019";
-          month = "09";
-          day = "22";
-      /* */
+      // 전체 리스트 가져오기
+        var today = new Date();
+        var yesterday = today.getTime() - (1 * 24 * 60 * 60 * 1000); // 어제 기사 가져오기
+        today.setTime(yesterday);
+        var day = today.getDate();
+        var month = today.getMonth() + 1;
+        var year = today.getFullYear();
+        if(month<10) month = "0" + month;
+        if(day<10) day = "0" + day;
 
       let formData = new FormData();
       formData.append("page", 10);
@@ -210,12 +189,11 @@ export default {
           this.newsAllInfo = res.data;
         })
     },
-
-    enterBot(){
+    enter(){
       // user comment
       this.load = true
       console.log(this.load)
-      var select = document.querySelector('.botTalk')
+      var select = document.querySelector('.talk')
 
       select.innerHTML += "<p class='arrow_box_right'>"+ this.text +"</p></br>"
       document.querySelector('.chattext').value = ''
@@ -236,11 +214,6 @@ export default {
 
       this.text = null
     },
-
-    enterChat(){
-
-    },
-
     moveDetailPage() {
       var e = window.event;
       var titleClick = e.target || e.srcElement;
@@ -324,13 +297,6 @@ export default {
   line-height: 15px;
   margin-left: 10px;
   font-size: 30px;
-  margin-right: 14px;
-}
-
-.chatIcon {
-  line-height: 15px;
-  margin-left: 10px;
-  font-size: 30px;
 }
 
 .chatbox {
@@ -339,7 +305,7 @@ export default {
   background-color: #F2F2F2;
 }
 
-.botTalk {
+.talk {
   width:100%;
   max-height: 300px;
   overflow-y:scroll;

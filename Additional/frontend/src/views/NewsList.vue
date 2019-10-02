@@ -82,12 +82,15 @@ export default {
       if(this.$store.state.searchCategory=='' || this.$store.state.searchCategory=='all'){
         // 전체 리스트 가져오기
         var today = new Date();
-        var day = today.getDate() - 1; // 어제 기사 가져오기
+        var yesterday = today.getTime() - (1 * 24 * 60 * 60 * 1000); // 어제 기사 가져오기
+        today.setTime(yesterday);
+        var day = today.getDate();
         var month = today.getMonth() + 1;
         var year = today.getFullYear();
-
-        if(month<10) month = "0" + month;
-
+        if(month < 10)
+          month = "0" + month;
+        if(day < 10)
+          day = "0" + day;
         if(opt == "page") {
           this.page = this.pageNum;
         }
@@ -95,15 +98,9 @@ export default {
           this.page = 1;
         }
 
-        /* 나중에 삭제해야함 */
-            year = "2019";
-            month = "09";
-            day = "22";
-        /* */
-
-
         let formData = new FormData();
         formData.append("page", this.page);
+
         formData.append("date", year+""+month+""+day);
         Server(this.$store.state.SERVER_URL).post("/api/get/news", formData)
           .then(res => {
@@ -151,6 +148,7 @@ export default {
     },
     moveDetail(newsObj) {
       this.$store.state.oneNewsInfo = newsObj;
+      console.log(newsObj)
       this.$router.push({path: "NewsDetail"});
     },
     movePage(dir) {
