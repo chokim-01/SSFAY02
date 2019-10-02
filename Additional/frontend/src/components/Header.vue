@@ -185,18 +185,15 @@ export default {
 
     getNewsTitle() {
       const axios = require("axios");
-      var today = new Date();
-      var day = today.getDate() - 1; // 어제 기사 가져오기
-      var month = today.getMonth() + 1;
-      var year = today.getFullYear();
-
-      if(month<10) month = "0" + month;
-
-      /* 나중에 삭제해야함 */
-          year = "2019";
-          month = "09";
-          day = "22";
-      /* */
+      // 전체 리스트 가져오기
+        var today = new Date();
+        var yesterday = today.getTime() - (1 * 24 * 60 * 60 * 1000); // 어제 기사 가져오기
+        today.setTime(yesterday);
+        var day = today.getDate();
+        var month = today.getMonth() + 1;
+        var year = today.getFullYear();
+        if(month<10) month = "0" + month;
+        if(day<10) day = "0" + day;
 
       let formData = new FormData();
       formData.append("page", 10);

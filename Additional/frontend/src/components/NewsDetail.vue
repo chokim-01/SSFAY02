@@ -1,4 +1,4 @@
-<template>
+﻿<template>
 <v-layout v-if="viewDetail" row wrap>
   <v-flex class="positionCenter" xs12 sm8 mb-2>
     <v-layout row wrap pb-4>
@@ -8,14 +8,14 @@
 
       <!-- Get Tags -->
       <v-flex class="text-xs-center" xs12 mb-4>
-        <template v-for="tag in tags">
+        <template v-for="newstag in newstags">
           <v-chip color="red" outline>
-            {{tag.tag_name}}
+            #{{newstag.newstag_name}}
           </v-chip>
         </template>
       </v-flex>
 
-      <v-flex class="text-xs-right" xs12 px-4>{{dateFormmat}}</v-flex>
+      <v-flex class="text-xs-right" xs12 px-4>{{detailTime}}</v-flex>
       <v-flex id="newspaperContent" v-html="detailContext" xs12 pa-3>
       </v-flex>
     </v-layout>
@@ -26,6 +26,8 @@
   <v-flex class="positionCenter" xs12 sm8 mb-5 >
     <hr>
     <h1 id="textCenter">데이터 분석</h1>
+    <!-- news cloud -->
+    <wordcloud :data="newsWords" nameKey="newstagname" valueKey="newstagcount" showTooltip="true" :rotate="rotateValue"></wordcloud>
 
     <v-layout row wrap>
       <v-flex xs12 sm1 />
@@ -46,6 +48,9 @@
   <v-flex class="positionCenter" xs12 sm8 mb-5>
     <hr>
     <h1  id="textCenter">댓글 분석</h1>
+    <!-- comments cloud -->
+    <wordcloud :data="commentsWords" nameKey="commentstagname" valueKey="commentstagcount" showTooltip="true" :rotate="rotateValue"></wordcloud>
+
     <v-card id="newsComment" flat>
       <v-layout class="mh50" row wrap>
         <v-flex xs12 sm5>
@@ -139,24 +144,27 @@
 </template>
 
 <script>
+import wordcloud from 'vue-wordcloud'
 import Server from "../server.js"
 import {store} from "../store.js"
 import Chart from "chart.js";
 
 export default {
   name: "NewsDetail",
+  components: {
+    wordcloud
+  },
   data() {
     return {
       detailTitle: this.$store.state.oneNewsInfo["news_title"],
       detailContext: this.$store.state.oneNewsInfo["news_context"],
       detailDate: this.$store.state.oneNewsInfo["news_date"],
       detailNum: this.$store.state.oneNewsInfo["news_num"],
-      detailTime:  this.$store.state.oneNewsInfo["news_type"],
+      detailTime:  this.$store.state.oneNewsInfo["news_time"],
       myDoughnutChart: null,
       doughnutData: null,
       comments: [],
       pageList: [],
-      tags: [],
       thisPage: 1,
       finalPage: 0,
       commentsCount: 0,
@@ -165,16 +173,25 @@ export default {
       commentTime: [],
       showLocal: true,
       commentPage: 1,
+      rotateValue: {
+        from: 0,
+        to: 0,
+        numOfOrientation: 5
+      },
+      newstags: [],
+      newsWords: [],
+      commentsWords: []
     }
   },
   created() {
     this.getComments(1);
-    this.getCommentsTags();
+    this.getNewsTags();
   },
   mounted() {
     this.getCommentsInfo();
     this.getCommentsTime();
-    this.getCommentsTags();
+    this.getNewsclouds();
+    this.getCommentsclouds();
 
     // Get Chart
     setTimeout(() => {
@@ -211,7 +228,9 @@ export default {
             pointRadius: 2,
             fill: false,
             lineTension: 0,
-            borderWidth: 3
+            borderWidth: 3,
+            newsWords: [],
+            commentsWords: []
           }]
         },
       });
@@ -219,20 +238,15 @@ export default {
   },
 
   computed: {
-    dateFormmat() {
-      var dDate = this.detailDate + "";
-      return dDate.substring(0, 4) + " - " + dDate.substring(4, 6) + " - " + dDate.substring(6, 8);
-    },
     viewDetail() {
       this.detailTitle = this.$store.state.oneNewsInfo["news_title"];
       this.detailContext = this.$store.state.oneNewsInfo["news_context"];
       this.detailDate = this.$store.state.oneNewsInfo["news_date"];
       this.detailNum = this.$store.state.oneNewsInfo["news_num"];
-      this.detailTime = this.$store.state.oneNewsInfo["news_type"]
+      this.detailTime = this.$store.state.oneNewsInfo["news_time"]
       this.getComments(1);
       this.getCommentsInfo();
       this.getCommentsTime();
-      this.getCommentsTags();
       return true;
     }
   },
@@ -293,12 +307,13 @@ export default {
     },
 
     // Get Tags
-    getCommentsTags() {
+    getNewsTags() {
       let formData = new FormData();
       formData.append("news_num", this.detailNum);
-      Server(this.$store.state.SERVER_URL).post("/api/get/tags", formData)
+      Server(this.$store.state.SERVER_URL).post("/api/get/newstags", formData)
         .then(res => {
-          this.tags = res.data;
+          console.log(res.data);
+          this.newstags = res.data;
         })
     },
 
@@ -334,6 +349,26 @@ export default {
             comment.label_local = 0;
           }
         });
+    },
+
+    // Get news cloud
+    getNewsclouds() {
+      let formData = new FormData();
+      formData.append("news_num", this.detailNum);
+      Server(this.$store.state.SERVER_URL).post("api/get/news_cloud", formData)
+        .then(res => {
+          this.newsWords = res.data
+        })
+    },
+
+    // Get comments cloud
+    getCommentsclouds() {
+      let formData = new FormData();
+      formData.append("news_num", this.detailNum);
+      Server(this.$store.state.SERVER_URL).post("api/get/comments_cloud", formData)
+        .then(res => {
+          this.commentsWords = res.data
+        })
     },
 
     // Show Regional sentiment
