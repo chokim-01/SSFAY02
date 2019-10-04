@@ -57,7 +57,7 @@
           </v-flex>
         </v-layout>
         <v-layout class="navi" row wrap>
-            <v-flex xs12 sm4>
+            <v-flex xs12 sm7 lg4>
               <v-btn class="headerButton" to="/" flat> News </v-btn>
               <v-btn class="headerButton" to="AboutUs" flat> About Us </v-btn>
 
@@ -72,6 +72,7 @@
 
                 <v-card>
                   <v-flex>
+                    <div style="color: #084B8A; font-size:20px; text-align: center;"> CHATBOT</div>
                     <div class='chatbox'>
                       <div class='botTalk'></div>
                       <div class='loadIcon'>
@@ -95,8 +96,9 @@
 
                 <v-card>
                   <v-flex>
+                    <div style="color: #084B8A; font-size:20px; text-align: center;">뉴스 검색 도우미</div>
                     <div class='chatbox'>
-                      <div class='chatSearch'></div>
+                      <div class='chatSearch' id="charSearchId"></div>
                     </div>
                   </v-flex>
                   <textarea class="chattextSearch" v-model="textSearch" @keyup.13="enterChat" name="content" rows="2" placeholder="입력하세요."></textarea>
@@ -105,8 +107,8 @@
               </v-menu>
             </v-flex>
 
-            <v-flex hidden-xs-only sm4></v-flex>
-            <v-flex xs12 sm4 id="realNewsTitle" >
+            <v-flex hidden-sm-only lg4></v-flex>
+            <v-flex id="realNewsTitle" xs12 sm5 lg4>
               <div @click="moveDetailPage()">
                 <vue-swimlane :words="newsTitle" :scale="1" :pauseOnHover="true" ></vue-swimlane>
               </div>
@@ -257,14 +259,16 @@ export default {
           select.innerHTML += arrowLeft + notFound + arrowEnd;
           return;
         }
-        select.innerHTML += arrowLeft + catchFound + arrowEnd;
-        select.innerHTML += arrowLeft + "제목 : " +JSON.stringify(res.data[0]["news_title"]) + arrowEnd;
 
+        select.innerHTML += arrowLeft + catchFound + arrowEnd;
+        let chatContent =  "<button @click='chatToDetail()' class='dddtail'>" + "제목 : " +JSON.stringify(res.data[0]["news_title"])+ "</button><br><br>";
         var tags = "태그 : "
+        console.log(res.data);
         for(var data of res.data){
-          tags += "<v-chip> "+JSON.stringify(data["newstag_name"]) + "</c-chip ";
+          console.log(JSON.stringify(data["newstag_name"]));
+          tags += "<span style='border-radius: 20px; background-color:white; margin: 0px 5px; border: 1px dotted gray; padding: 0px 5px 0px 2px;'> #"+data["newstag_name"] + "</span>";
         }
-        select.innerHTML += arrowLeft + tags + arrowEnd;
+        select.innerHTML +=  arrowLeft + chatContent + tags + arrowEnd;
 
       }).catch(error => {
 
@@ -285,6 +289,10 @@ export default {
       if(window.location.pathname != "/NewsDetail") {
         this.$router.push({path: "NewsDetail"});
       }
+    },
+
+    chatToDetail() {
+      console.log("!!!");
     }
   }
 }
