@@ -253,9 +253,7 @@ export default {
 
       // chatbot search
       Server(this.$store.state.SERVER_URL).post("/api/get/chat", form).then(res => {
-        console.log(res.data)
         if(res.data == "False"){
-          console.log(select)
           select.innerHTML += arrowLeft + notFound + arrowEnd;
           return;
         }
