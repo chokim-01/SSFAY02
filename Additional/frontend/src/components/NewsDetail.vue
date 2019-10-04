@@ -421,6 +421,7 @@ export default {
   font-family: "Noto Serif KR", serif;
   overflow-y: scroll;
   height: 520px;
+  font-size: 18px;
 }
 
 #textCenter {
