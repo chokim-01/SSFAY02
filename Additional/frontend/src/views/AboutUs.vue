@@ -1,198 +1,202 @@
 <template>
-  <v-layout row wrap>
-    <v-flex class="content">
-          <v-flex class="title1" xs12 my-4>프로젝트 소개</v-flex>
-          <v-flex class="title2" xs12 my-4>네이버 뉴스를 통해 정치적 성향을 알아보고자</v-flex>
-          <v-flex class="content1" xs12 my-4>
-            개발중...
-          </v-flex></br>
-          <hr/>
-          </br>
-          <v-flex class="title2" xs12 my-4>팀원 소개</v-flex>
+<v-layout row wrap>
+  <v-flex class="positionCenter" xs12 sm8>
+    <div class="wrapper row2 ">
+      <div id="container" class="clear">
 
-        <div class="collumns">
+        <div id="about-us" class="clear">
+          <div class="three_fifth first">
+            <section id="about-intro" class="clear">
+              <div class="panorama"><img class="imgholder" id="about-picture" src="../assets/548x250.gif" alt=""></div>
+              <p>설명설명</p>
+            </section>
 
-          <div class="collumn">
-            <div class="head"><span class="headline hl1">박사홍</span>
-            </div>
-            안녕하세요</p>
-            <figure class="figure">
-              <img class="media" src="http://i.giphy.com/PW7MoTD2d9pJK.gif" alt="">
-              <figcaption class="figcaption">하하</figcaption>
-            </figure>
+            <section id="skillset">
+              <div class="fl_left first">
+                <h2>개발 환경</h2>
+                <p>언어</p>
+                <p>프레임워크</p>
+              </div>
+            </section>
           </div>
 
-          <div class="collumn">
-            <div class="head"><span class="headline hl1">양동권</span>
-            </div>
-            안녕하세요</p>
-            <figure class="figure">
-              <img class="media" src="http://i.giphy.com/PW7MoTD2d9pJK.gif" alt="">
-              <figcaption class="figcaption">하하</figcaption>
-            </figure>
-          </div>
-
-          <div class="collumn">
-            <div class="head"><span class="headline hl1">박근형</span>
-            </div>
-            안녕하세요</p>
-            <figure class="figure">
-              <img class="media" src="http://i.giphy.com/PW7MoTD2d9pJK.gif" alt="">
-              <figcaption class="figcaption">하하</figcaption>
-            </figure>
-          </div>
-
-          <div class="collumn">
-            <div class="head"><span class="headline hl1">정가영</span>
-            </div>
-            안녕하세요</p>
-            <figure class="figure">
-              <img class="media" src="http://i.giphy.com/PW7MoTD2d9pJK.gif" alt="">
-              <figcaption class="figcaption">하하</figcaption>
-            </figure>
-          </div>
-
-          <div class="collumn">
-            <div class="head"><span class="headline hl1">박홍렬</span>
-            </div>
-            안녕하세요</p>
-            <figure class="figure">
-              <img class="media" src="http://i.giphy.com/PW7MoTD2d9pJK.gif" alt="">
-              <figcaption class="figcaption">하하</figcaption>
-            </figure>
-          </div>
-
-          <div class="collumn">
-            <div class="head"><span class="headline hl1">허정건</span>
-            </div>
-            안녕하세요</p>
-            <figure class="figure">
-              <img class="media" src="http://i.giphy.com/PW7MoTD2d9pJK.gif" alt="">
-              <figcaption class="figcaption">하하</figcaption>
-            </figure>
-          </div>
+          <section id="team" class="two_fifth">
+            <h2>About Us</h2>
+            <ul>
+              <li v-for="(member, index) in AboutUs" :key="index">
+                <figure><img class="team_picture" :src="member.img" >
+                  <figcaption>
+                    <p class="team_name">{{member.name}}</p>
+                    <p class="team_title">{{member.level}}</p>
+                    <p class="team_description">{{member.disc}}</p>
+                  </figcaption>
+                </figure>
+              </li>
+            </ul>
+          </section>
         </div>
-    </v-flex>
-  </v-layout>
+      </div>
+    </div>
+  </v-flex>
+</v-layout>
 </template>
 
 <script>
-  export default {
-    data () {
-      return {
 
-      }
-    },
-    mounted() {
+import AboutUs from '@/JS/AboutUs.js'
+
+export default {
+  data() {
+    return {
+      AboutUs: AboutUs
     }
-  }
+  },
+}
 </script>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css?family=Song+Myung&display=swap');
 
-#newsDetail {
-  background-color: #D8D8D8;
-}
-.collumns{
-  margin-left: 2%;
-  margin-top: 30px;
-}
-.collumn
-.figure {
-    margin: 0 0 20px;
+.positionCenter {
+  margin: 0 auto;
 }
 
-.contentCard {
-  height: auto;
+.one_fifth,
+.two_fifth,
+.three_fifth,
+.four_fifth {
+  display: inline-block;
+  float: left;
+  margin: 0 0 0 50px;
+  list-style: none;
 }
 
-.title1 {
-  overflow: hidden;
-  font-family: 'Song Myung', serif;
-  font-size: 40px;
-  text-align: center;
+.two_fifth {
+  width: 372px;
 }
 
-.title2{
-  overflow: hidden;
-  font-family: 'Song Myung', serif;
-  font-size: 28px;
-  text-align: center;
+.four_fifth {
+  width: 764px;
 }
 
-.content1{
-  overflow: hidden;
-  font-family: 'Song Myung', serif;
-  font-size: 21px;
-  text-align: center;
+.team_picture{
+  max-width: 110px;
 }
 
-.collumn {
-    font-size: 14px;
-    line-height: 20px;
-    width: 16%;
+#about-us {
+  display: block;
+  width: 100%;
+  line-height: 1.6em;
+}
+
+#about-us #about-intro {
+  margin-bottom: 30px;
+}
+
+#about-us #about-intro blockquote {
+  position: relative;
+  margin: 0;
+  padding: 0;
+}
+
+#about-us #about-intro blockquote p {
+  margin: 0;
+  padding: 0 0 0 60px;
+  font-size: 22px;
+  font-style: italic;
+  line-height: 1.6em;
+}
+
+#about-us #about-intro blockquote p span {
+  position: absolute;
+  top: 0;
+  left: 0;
+  font-size: 120px;
+  line-height: .8em;
+}
+
+#about-us #skillset {
+  margin-bottom: 0;
+}
+
+#about-us #skillset .fl_left:first-child {
+  margin-left: 0;
+}
+
+#about-us #skillset .fl_left li {
+  margin-top: 5px;
+}
+
+#about-us #skillset .fl_left li:first-child {
+  margin-top: 0;
+}
+
+#about-us #team {
+  margin-bottom: 0;
+}
+
+#team h2 {
+  margin-bottom: 10px;
+}
+
+#about-us #team ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+#about-us #team ul li {
+  display: block;
+  margin: 10px 0 0 0;
+}
+
+#about-us #team ul li:first-child {
+  margin-top: 0;
+}
+
+#about-us #team ul li figcaption {
+  float: right;
+  width: 250px;
+}
+
+#about-us #team ul li figcaption p {
+  margin: 0;
+  padding: 0;
+}
+
+#about-us #team ul li figure figcaption .team_name {
+  font-weight: bold;
+}
+
+#about-us #team ul li figure figcaption .team_title {
+  font-size: 11px;
+  line-height: normal;
+}
+
+#about-us #team ul li figure figcaption .team_description {
+  margin-top: 10px;
+  line-height: 1.4em;
+}
+
+
+@media (max-width: 600px) {
+  #about-picture {
+    width: 90%;
+  }
+
+  .one_fifth,
+  .two_fifth,
+  .three_fifth,
+  .four_fifth {
     display: inline-block;
-    padding: 0 1%;
-    vertical-align: top;
-    margin-bottom: 50px;
-    transition: all 0.7s;
-}
+    float: left;
+    margin: 0 0 0 20px;
+    list-style: none;
+  }
 
-.collumn + .collumn {
-    border-left: 1px solid #2f2f2f;
-}
-
-.media {
-    mix-blend-mode: multiply;
-    width: 100%;
-}
-
-.collumn
-.headline {
-    text-align: center;
-    line-height: normal;
-    font-family: 'Playfair Display', serif;
-    display: block;
-    margin: 0 auto;
-
-}
-.collumn
-.headline.hl1 {
-    font-weight: 700;
-    font-size: 30px;
-    text-transform: uppercase;
-    padding: 10px 0;
-
-}
-
-/*MEDIAQUERIES*/
-@media only all and (max-width: 1300px) {
-    .weatherforcastbox {
-        display: none;
-    }
-
-}
-@media only all and (max-width: 1200px) {
-    .collumn {
-        width: 31%;
-    }
-
-}
-@media only all and (max-width: 900px) {
-    .collumn {
-        width: 47%;
-    }
-
-}
-@media only all and (max-width: 600px) {
-    .collumn {
-        width: 100%;
-    }
-    .collumn + .collumn {
-        border-left: none;
-        border-bottom: 1px solid #2f2f2f;
-    }
+  #about-us #team ul li figcaption {
+    float: left;
+    width: 220px;
+  }
 }
 
 </style>
