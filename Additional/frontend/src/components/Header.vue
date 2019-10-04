@@ -64,8 +64,8 @@
               <!-- chatbot1 -->
               <v-icon class="chatbotIcon" @click.stop="check_bot_view = !check_bot_view">far fa-comment-dots</v-icon>
 
-              <!-- chatbot2 -->
-              <v-icon class="chatIcon" @click.stop="check_chat_view = !check_chat_view">far fa-comments</v-icon>
+              <!-- chat search -->
+              <v-icon class="chatIcon" @click.stop="check_chatsearch_view = !check_chatsearch_view">far fa-comments</v-icon>
 
               <v-menu class="chat" v-model="check_bot_view" :close-on-content-click="false" :nudge-width="200" offset-y>
                 <template v-slot:activator="{ on }"></template>
@@ -90,20 +90,21 @@
                 </v-card>
               </v-menu>
 
-              <v-menu class="chat" v-model="check_chat_view" :close-on-content-click="false" :nudge-width="200" offset-y>
+              <v-menu class="chat" v-model="check_chatsearch_view" :close-on-content-click="false" :nudge-width="200" offset-y>
                 <template v-slot:activator="{ on }"></template>
 
                 <v-card>
                   <v-flex>
                     <div class='chatbox'>
-                      <div class='chatTalk'></div>
+                      <div class='chatSearch'></div>
                     </div>
                   </v-flex>
-                  <textarea class="chattext" v-model="text" @keyup.13="enterChat" name="content" rows="2" placeholder="입력하세요."></textarea>
+                  <textarea class="chattextSearch" v-model="textSearch" @keyup.13="enterChat" name="content" rows="2" placeholder="입력하세요."></textarea>
                   <i class="send far fa-paper-plane" @click="enterChat"></i>
                 </v-card>
               </v-menu>
             </v-flex>
+
             <v-flex hidden-xs-only sm4></v-flex>
             <v-flex xs12 sm4 id="realNewsTitle" >
               <div @click="moveDetailPage()">
@@ -140,8 +141,9 @@ export default {
       ],
       menu: false,
       check_bot_view: false,
-      check_chat_view: false,
+      check_chatsearch_view: false,
       text: "",
+      textSearch: "",
       load: false
     }
   },
@@ -210,32 +212,69 @@ export default {
 
     enterBot(){
       // user comment
-      this.load = true
-      console.log(this.load)
-      var select = document.querySelector('.botTalk')
+      this.load = true;
+      var select = document.querySelector('.botTalk');
 
-      select.innerHTML += "<p class='arrow_box_right'>"+ this.text +"</p></br>"
-      document.querySelector('.chattext').value = ''
+      select.innerHTML += "<p class='arrow_box_right'>"+ this.text +"</p></br>";
+      document.querySelector('.chattext').value = '';
 
       // form data
-      var form = new FormData()
-      form.append('msg', this.text)
+      var form = new FormData();
+      form.append('msg', this.text);
 
       // chatbot comment
       Server(this.$store.state.SERVER_URL).post("/api/chat", form).then(res => {
-        select.innerHTML += "<p class='arrow_box_left'>" + JSON.stringify(res.data) + "</p>"
+        select.innerHTML += "<p class='arrow_box_left'>" + JSON.stringify(res.data) + "</p>";
       }).catch(error => {
 
       }).then(()=>{
-        this.load = false
-        select.scrollTop = select.scrollHeight
+        this.load = false;
+        select.scrollTop = select.scrollHeight;
       })
 
-      this.text = null
+      this.text = null;
     },
 
     enterChat(){
 
+      var arrowLeft = "<p class='arrow_box_left'>";
+      var arrowRight = "<p class='arrow_box_right'>";
+      var arrowEnd = "</p></br>";
+      var notFound = "찾으시는 기사가 없어요 ㅠㅠ";
+      var catchFound = "이 기사를 찾으셨나요?";
+      var select = document.querySelector('.chatSearch');
+
+      select.innerHTML += arrowRight + this.textSearch + arrowEnd;
+      document.querySelector('.chattextSearch').value = '';
+
+      // form data
+      var form = new FormData()
+      form.append('msg', this.textSearch);
+
+      // chatbot search
+      Server(this.$store.state.SERVER_URL).post("/api/get/chat", form).then(res => {
+        console.log(res.data)
+        if(res.data == "False"){
+          console.log(select)
+          select.innerHTML += arrowLeft + notFound + arrowEnd;
+          return;
+        }
+        select.innerHTML += arrowLeft + catchFound + arrowEnd;
+        select.innerHTML += arrowLeft + "제목 : " +JSON.stringify(res.data[0]["news_title"]) + arrowEnd;
+
+        var tags = "태그 : "
+        for(var data of res.data){
+          tags += "<v-chip> "+JSON.stringify(data["newstag_name"]) + "</c-chip ";
+        }
+        select.innerHTML += arrowLeft + tags + arrowEnd;
+
+      }).catch(error => {
+
+      }).then(()=>{
+        select.scrollTop = select.scrollHeight
+      })
+
+      this.textSearch = null
     },
 
     moveDetailPage() {
@@ -343,6 +382,13 @@ export default {
   overflow-x:hidden;
 }
 
+.chatSearch {
+  width:100%;
+  max-height: 300px;
+  overflow-y:scroll;
+  overflow-x:hidden;
+}
+
 .chat {
   width: 70%;
   height: auto;
@@ -351,6 +397,10 @@ export default {
 }
 
 .chattext {
+  width: 88%;
+}
+
+.chattextSearch {
   width: 88%;
 }
 
