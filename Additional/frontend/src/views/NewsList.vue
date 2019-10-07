@@ -148,7 +148,6 @@ export default {
     },
     moveDetail(newsObj) {
       this.$store.state.oneNewsInfo = newsObj;
-      console.log(newsObj)
       this.$router.push({path: "NewsDetail"});
     },
     movePage(dir) {

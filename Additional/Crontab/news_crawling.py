@@ -381,23 +381,22 @@ def add_comments_tag(tag_data):
 
 
 def main():
-    for idx in range(1, 80):
-        current_time = datetime.datetime.now()
-        news_link_list = get_news_links(current_time - datetime.timedelta(days=idx))
-        data = load_data(news_link_list)
+    current_time = datetime.datetime.now()
+    news_link_list = get_news_links(current_time - datetime.timedelta(days=1))
+    data = load_data(news_link_list)
 
-        print("[-] Del duplicate column")
-        # Deduplicate before news
-        news_data, comments_data = check_news_duplicate(data)
+    print("[-] Del duplicate column")
+    # Deduplicate before news
+    news_data, comments_data = check_news_duplicate(data)
 
-        print("[+] Make tags....")
-        # Make tag news, comments
-        news_tag_data = make_news_tag(news_data)
-        comments_tag_data = make_comments_tag(comments_data)
+    print("[+] Make tags....")
+    # Make tag news, comments
+    news_tag_data = make_news_tag(news_data)
+    comments_tag_data = make_comments_tag(comments_data)
 
-        # Insert into db , news, comments, tags
-        add_to_db(news_data, comments_data, news_tag_data, comments_tag_data)
-        print(idx, " day complete")
+    # Insert into db , news, comments, tags
+    add_to_db(news_data, comments_data, news_tag_data, comments_tag_data)
+    print(idx, " day complete")
 
 
 if __name__ == '__main__':

@@ -57,23 +57,36 @@
           </v-flex>
         </v-layout>
         <v-layout class="navi" row wrap>
-            <v-flex xs12 sm4>
+            <v-flex xs12 sm7 lg4>
               <v-btn class="headerButton" to="/" flat> News </v-btn>
               <v-btn class="headerButton" to="AboutUs" flat> About Us </v-btn>
 
               <!-- chatbot1 -->
               <v-icon class="chatbotIcon" @click.stop="check_bot_view = !check_bot_view">far fa-comment-dots</v-icon>
 
-              <!-- chatbot2 -->
-              <v-icon class="chatIcon" @click.stop="check_chat_view = !check_chat_view">far fa-comments</v-icon>
+              <!-- chat search -->
+              <v-icon class="chatIcon" @click.stop="check_chatsearch_view = !check_chatsearch_view">far fa-comments</v-icon>
 
               <v-menu class="chat" v-model="check_bot_view" :close-on-content-click="false" :nudge-width="200" offset-y>
                 <template v-slot:activator="{ on }"></template>
 
                 <v-card>
                   <v-flex>
+                    <div class="chatHeader"> 심심이</div>
                     <div class='chatbox'>
-                      <div class='botTalk'></div>
+                      <div class='botTalk'>
+                        <v-layout v-for="(responseItem, index) in chatResponeseItems" :key="responseItem+index" row wrap mt-5>
+                          <v-flex xs1>
+                            <div class="botCharacter">
+                              <img class="botImage" src="@/assets/chick.png">
+
+                            </div>
+                          </v-flex>
+                          <v-flex xs10>
+                            <p class='arrow_box_left' v-html="responseItem" />
+                          </v-flex>
+                        </v-layout>
+                      </div>
                       <div class='loadIcon'>
                         <div class="loader" v-if="load">
                          <div class="circle"></div>
@@ -90,22 +103,43 @@
                 </v-card>
               </v-menu>
 
-              <v-menu class="chat" v-model="check_chat_view" :close-on-content-click="false" :nudge-width="200" offset-y>
+              <v-menu class="chat" v-model="check_chatsearch_view" :close-on-content-click="false" :nudge-width="200" offset-y>
                 <template v-slot:activator="{ on }"></template>
 
                 <v-card>
                   <v-flex>
+                    <div class="chatHeader">뉴스 검색 도우미</div>
                     <div class='chatbox'>
-                      <div class='chatTalk'></div>
+                      <div class='chatSearch'  @click="chatToDetail()" >
+                        <v-layout v-for="(chatItem, index) in chatSearchItems" :key="chatItem+chatItem.newsNum" row wrap mt-5>
+                          <v-flex xs1>
+                            <div class="botCharacter">
+                              <img class="botImage" src="@/assets/chick.png">
+
+                            </div>
+                          </v-flex>
+                          <v-flex xs10>
+                            <p class='arrow_box_left' v-html="chatItem.msg" />
+                            <p v-if="chatItem.newsNum!=null" class='arrow_box_left'>
+                              <span v-bind:value="chatItem.newsNum" class="clickTitle">
+                                {{chatItem.newsTitle}}
+                              </span>
+                              <br><br>
+                              <span v-html="chatItem.newsTags" />
+                            </p>
+                          </v-flex>
+                        </v-layout>
+                      </div>
                     </div>
                   </v-flex>
-                  <textarea class="chattext" v-model="text" @keyup.13="enterChat" name="content" rows="2" placeholder="입력하세요."></textarea>
+                  <textarea class="chattextSearch" v-model="textSearch" @keyup.13="enterChat" name="content" rows="2" placeholder="입력하세요."></textarea>
                   <i class="send far fa-paper-plane" @click="enterChat"></i>
                 </v-card>
               </v-menu>
             </v-flex>
-            <v-flex hidden-xs-only sm4></v-flex>
-            <v-flex xs12 sm4 id="realNewsTitle" >
+
+            <v-flex hidden-sm-only lg4></v-flex>
+            <v-flex id="realNewsTitle" xs12 sm5 lg4>
               <div @click="moveDetailPage()">
                 <vue-swimlane :words="newsTitle" :scale="1" :pauseOnHover="true" ></vue-swimlane>
               </div>
@@ -140,9 +174,12 @@ export default {
       ],
       menu: false,
       check_bot_view: false,
-      check_chat_view: false,
+      check_chatsearch_view: false,
       text: "",
-      load: false
+      textSearch: "",
+      load: false,
+      chatSearchItems: [],
+      chatResponeseItems: []
     }
   },
   mounted() {
@@ -210,32 +247,81 @@ export default {
 
     enterBot(){
       // user comment
-      this.load = true
-      console.log(this.load)
-      var select = document.querySelector('.botTalk')
+      this.load = true;
+      var select = document.querySelector('.botTalk');
 
-      select.innerHTML += "<p class='arrow_box_right'>"+ this.text +"</p></br>"
-      document.querySelector('.chattext').value = ''
+      select.innerHTML += "<p class='arrow_box_right'>"+ this.text +"</p></br>";
+      document.querySelector('.chattext').value = '';
 
       // form data
-      var form = new FormData()
-      form.append('msg', this.text)
+      var form = new FormData();
+      form.append('msg', this.text);
 
       // chatbot comment
       Server(this.$store.state.SERVER_URL).post("/api/chat", form).then(res => {
-        select.innerHTML += "<p class='arrow_box_left'>" + JSON.stringify(res.data) + "</p>"
+        this.chatResponeseItems.push(JSON.stringify(res.data));
       }).catch(error => {
 
       }).then(()=>{
-        this.load = false
-        select.scrollTop = select.scrollHeight
+        this.load = false;
+        select.scrollTop = select.scrollHeight;
       })
 
-      this.text = null
+      this.text = null;
     },
 
     enterChat(){
 
+      var arrowLeft = "<p class='arrow_box_left'>";
+      var arrowRight = "<p class='arrow_box_right'>";
+      var arrowEnd = "</p></br>";
+      var notFound = "찾으시는 기사가 없어요 ㅠㅠ";
+      var catchFound = "이 기사를 찾으셨나요?";
+      var select = document.querySelector('.chatSearch');
+
+      select.innerHTML += arrowRight + this.textSearch + arrowEnd;
+      document.querySelector('.chattextSearch').value = '';
+
+      // form data
+      var form = new FormData()
+      form.append('msg', this.textSearch);
+
+      // chatbot search
+      Server(this.$store.state.SERVER_URL).post("/api/get/chat", form).then(res => {
+        if(res.data == "False"){
+          let chatSearchOne = {
+            msg : notFound,
+            newsTitle : null,
+            newsNum: null,
+            newsTags : null
+          };
+
+          this.chatSearchItems.push(chatSearchOne);
+
+          return;
+        }
+
+        let tags = "태그 : "
+        for(let data of res.data){
+          tags += "<span style='border-radius: 20px; background-color:white; margin: 0px 5px; border: 1px dotted gray; padding: 0px 5px 0px 2px;'> #"+data["newstag_name"] + "</span>";
+        }
+
+        let chatSearchOne = {
+          msg : catchFound,
+          newsTitle : "제목 : " + JSON.stringify(res.data[0]["news_title"]),
+          newsNum: res.data[0]["news_num"],
+          newsTags : tags
+        };
+
+        this.chatSearchItems.push(chatSearchOne);
+
+      }).catch(error => {
+
+      }).then(()=>{
+        select.scrollTop = select.scrollHeight
+      })
+
+      this.textSearch = null
     },
 
     moveDetailPage() {
@@ -248,6 +334,29 @@ export default {
       if(window.location.pathname != "/NewsDetail") {
         this.$router.push({path: "NewsDetail"});
       }
+    },
+
+    chatToDetail() {
+      var e = window.event;
+      var titleClick = e.target || e.srcElement;
+
+      // 뉴스 가져와서 store에 저장
+      var form = new FormData();
+      form.append('news_num', titleClick.getAttribute("value"));
+
+      Server(this.$store.state.SERVER_URL).post("/api/get/one_news", form).then(res => {
+        this.$store.state.oneNewsInfo = res.data[0];
+      }).catch(error => {
+
+      }).then(()=>{
+        this.check_chatsearch_view = !this.check_chatsearch_view;
+      })
+
+      setTimeout(() => {
+        if(window.location.pathname != "/NewsDetail") {
+          this.$router.push({path: "NewsDetail"});
+        }
+      }, 400);
     }
   }
 }
@@ -255,7 +364,6 @@ export default {
 
 
 <style lang="scss" scoped>
-@import url('https://fonts.googleapis.com/css?family=Ma+Shan+Zheng&display=swap');
 
 .header {
     position: relative;
@@ -266,8 +374,7 @@ export default {
     }
 
     title {
-        font-family: 'Droid Serif', serif;
-        font-weight: 900;
+        font-weight: 400;
         font-size: 4rem;
         display: inline-block;
         margin-left: 10px;
@@ -343,6 +450,33 @@ export default {
   overflow-x:hidden;
 }
 
+.chatSearch {
+  width:100%;
+  max-height: 300px;
+  overflow-y:scroll;
+  overflow-x:hidden;
+}
+
+.botCharacter {
+  margin: 0 auto;
+  margin-top: 5px;
+  border-radius: 50%;
+  background-color: #F2F5A9;
+  width:40px;
+  height:40px;
+}
+
+.botImage {
+  width:inherit;
+  height:inherit;
+}
+
+.chatHeader {
+  color: #084B8A;
+  font-size:20px;
+  text-align: center;
+}
+
 .chat {
   width: 70%;
   height: auto;
@@ -354,6 +488,19 @@ export default {
   width: 88%;
 }
 
+.chattextSearch {
+  width: 88%;
+}
+
+.clickTitle {
+  font-weight: bold;
+}
+
+.clickTitle:hover {
+  text-decoration : underline;
+  cursor: pointer;
+}
+
 .send {
   float: right;
   font-size: 30px;
@@ -362,7 +509,6 @@ export default {
 }
 
 .loader {
-   // transform: translateX(-50%) translateY(-50%);
    width: 50px;
    height: 50px;
    margin: auto;
@@ -444,6 +590,26 @@ export default {
        transform: rotate(945deg);
        opacity: 0;
    }
+}
+
+@media (max-width : 600px) {
+  .v-menu__content {
+    width: 80% !important;
+    min-width: 0px !important;
+  }
+
+  .send {
+    margin-right: 7px;
+    transform: scale(0.7);
+  }
+
+  .chatbox {
+    font-size: 12px;
+  }
+
+  .chattextSearch, .chattext {
+    width: 80%;
+  }
 }
 
 @media (min-width : 600px) {
