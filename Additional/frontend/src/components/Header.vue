@@ -72,9 +72,21 @@
 
                 <v-card>
                   <v-flex>
-                    <div style="color: #084B8A; font-size:20px; text-align: center;"> CHATBOT</div>
+                    <div class="chatHeader"> 심심이</div>
                     <div class='chatbox'>
-                      <div class='botTalk'></div>
+                      <div class='botTalk'>
+                        <v-layout v-for="(responseItem, index) in chatResponeseItems" :key="responseItem+index" row wrap mt-5>
+                          <v-flex xs1>
+                            <div class="botCharacter">
+                              <img class="botImage" src="@/assets/chick.png">
+
+                            </div>
+                          </v-flex>
+                          <v-flex xs10>
+                            <p class='arrow_box_left' v-html="responseItem" />
+                          </v-flex>
+                        </v-layout>
+                      </div>
                       <div class='loadIcon'>
                         <div class="loader" v-if="load">
                          <div class="circle"></div>
@@ -96,9 +108,28 @@
 
                 <v-card>
                   <v-flex>
-                    <div style="color: #084B8A; font-size:20px; text-align: center;">뉴스 검색 도우미</div>
+                    <div class="chatHeader">뉴스 검색 도우미</div>
                     <div class='chatbox'>
-                      <div class='chatSearch' id="charSearchId"></div>
+                      <div class='chatSearch'  @click="chatToDetail()" >
+                        <v-layout v-for="(chatItem, index) in chatSearchItems" :key="chatItem+chatItem.newsNum" row wrap mt-5>
+                          <v-flex xs1>
+                            <div class="botCharacter">
+                              <img class="botImage" src="@/assets/chick.png">
+
+                            </div>
+                          </v-flex>
+                          <v-flex xs10>
+                            <p class='arrow_box_left' v-html="chatItem.msg" />
+                            <p v-if="chatItem.newsNum!=null" class='arrow_box_left'>
+                              <span v-bind:value="chatItem.newsNum" class="clickTitle">
+                                {{chatItem.newsTitle}}
+                              </span>
+                              <br><br>
+                              <span v-html="chatItem.newsTags" />
+                            </p>
+                          </v-flex>
+                        </v-layout>
+                      </div>
                     </div>
                   </v-flex>
                   <textarea class="chattextSearch" v-model="textSearch" @keyup.13="enterChat" name="content" rows="2" placeholder="입력하세요."></textarea>
@@ -146,7 +177,9 @@ export default {
       check_chatsearch_view: false,
       text: "",
       textSearch: "",
-      load: false
+      load: false,
+      chatSearchItems: [],
+      chatResponeseItems: []
     }
   },
   mounted() {
@@ -226,7 +259,7 @@ export default {
 
       // chatbot comment
       Server(this.$store.state.SERVER_URL).post("/api/chat", form).then(res => {
-        select.innerHTML += "<p class='arrow_box_left'>" + JSON.stringify(res.data) + "</p>";
+        this.chatResponeseItems.push(JSON.stringify(res.data));
       }).catch(error => {
 
       }).then(()=>{
@@ -256,19 +289,31 @@ export default {
       // chatbot search
       Server(this.$store.state.SERVER_URL).post("/api/get/chat", form).then(res => {
         if(res.data == "False"){
-          select.innerHTML += arrowLeft + notFound + arrowEnd;
+          let chatSearchOne = {
+            msg : notFound,
+            newsTitle : null,
+            newsNum: null,
+            newsTags : null
+          };
+
+          this.chatSearchItems.push(chatSearchOne);
+
           return;
         }
 
-        select.innerHTML += arrowLeft + catchFound + arrowEnd;
-        let chatContent =  "<button @click='chatToDetail()' class='dddtail'>" + "제목 : " +JSON.stringify(res.data[0]["news_title"])+ "</button><br><br>";
-        var tags = "태그 : "
-        console.log(res.data);
-        for(var data of res.data){
-          console.log(JSON.stringify(data["newstag_name"]));
+        let tags = "태그 : "
+        for(let data of res.data){
           tags += "<span style='border-radius: 20px; background-color:white; margin: 0px 5px; border: 1px dotted gray; padding: 0px 5px 0px 2px;'> #"+data["newstag_name"] + "</span>";
         }
-        select.innerHTML +=  arrowLeft + chatContent + tags + arrowEnd;
+
+        let chatSearchOne = {
+          msg : catchFound,
+          newsTitle : "제목 : " + JSON.stringify(res.data[0]["news_title"]),
+          newsNum: res.data[0]["news_num"],
+          newsTags : tags
+        };
+
+        this.chatSearchItems.push(chatSearchOne);
 
       }).catch(error => {
 
@@ -292,7 +337,26 @@ export default {
     },
 
     chatToDetail() {
-      console.log("!!!");
+      var e = window.event;
+      var titleClick = e.target || e.srcElement;
+
+      // 뉴스 가져와서 store에 저장
+      var form = new FormData();
+      form.append('news_num', titleClick.getAttribute("value"));
+
+      Server(this.$store.state.SERVER_URL).post("/api/get/one_news", form).then(res => {
+        this.$store.state.oneNewsInfo = res.data[0];
+      }).catch(error => {
+
+      }).then(()=>{
+        this.check_chatsearch_view = !this.check_chatsearch_view;
+      })
+
+      setTimeout(() => {
+        if(window.location.pathname != "/NewsDetail") {
+          this.$router.push({path: "NewsDetail"});
+        }
+      }, 400);
     }
   }
 }
@@ -300,7 +364,6 @@ export default {
 
 
 <style lang="scss" scoped>
-@import url('https://fonts.googleapis.com/css?family=Ma+Shan+Zheng&display=swap');
 
 .header {
     position: relative;
@@ -311,8 +374,7 @@ export default {
     }
 
     title {
-        font-family: 'Droid Serif', serif;
-        font-weight: 900;
+        font-weight: 400;
         font-size: 4rem;
         display: inline-block;
         margin-left: 10px;
@@ -395,6 +457,26 @@ export default {
   overflow-x:hidden;
 }
 
+.botCharacter {
+  margin: 0 auto;
+  margin-top: 5px;
+  border-radius: 50%;
+  background-color: #F2F5A9;
+  width:40px;
+  height:40px;
+}
+
+.botImage {
+  width:inherit;
+  height:inherit;
+}
+
+.chatHeader {
+  color: #084B8A;
+  font-size:20px;
+  text-align: center;
+}
+
 .chat {
   width: 70%;
   height: auto;
@@ -410,6 +492,15 @@ export default {
   width: 88%;
 }
 
+.clickTitle {
+  font-weight: bold;
+}
+
+.clickTitle:hover {
+  text-decoration : underline;
+  cursor: pointer;
+}
+
 .send {
   float: right;
   font-size: 30px;
@@ -418,7 +509,6 @@ export default {
 }
 
 .loader {
-   // transform: translateX(-50%) translateY(-50%);
    width: 50px;
    height: 50px;
    margin: auto;
@@ -500,6 +590,26 @@ export default {
        transform: rotate(945deg);
        opacity: 0;
    }
+}
+
+@media (max-width : 600px) {
+  .v-menu__content {
+    width: 80% !important;
+    min-width: 0px !important;
+  }
+
+  .send {
+    margin-right: 7px;
+    transform: scale(0.7);
+  }
+
+  .chatbox {
+    font-size: 12px;
+  }
+
+  .chattextSearch, .chattext {
+    width: 80%;
+  }
 }
 
 @media (min-width : 600px) {
