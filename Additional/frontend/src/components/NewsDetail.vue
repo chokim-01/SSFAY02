@@ -26,7 +26,7 @@
     <hr class="dottedLine">
     <h1 id="textCenter" >데이터 분석</h1>
     <!-- news cloud -->
-    <wordcloud :data="newsWords" nameKey="newstagname" valueKey="newstagcount" showTooltip="true" :rotate="rotateValue"></wordcloud>
+    <wordcloud :data="newsWords" nameKey="newstagname" valueKey="newstagcount" :rotate="rotateValue"></wordcloud>
 
     <v-layout row wrap>
       <v-flex xs12 sm1 />
@@ -48,7 +48,7 @@
     <hr class="dottedLine">
     <h1  id="textCenter">댓글 분석</h1>
     <!-- comments cloud -->
-    <wordcloud :data="commentsWords" nameKey="commentstagname" valueKey="commentstagcount" showTooltip="true" :rotate="rotateValue"></wordcloud>
+    <wordcloud :data="commentsWords" nameKey="commentstagname" valueKey="commentstagcount" :rotate="rotateValue"></wordcloud>
 
     <v-card id="newsComment" flat>
       <v-layout class="mh50" row wrap>
@@ -189,66 +189,76 @@ export default {
     this.getNewsclouds();
     this.getCommentsclouds();
     this.detailContext = this.detailContext.split('\n').join('<br />');
-
-    // Get Chart
-    setTimeout(() => {
-      var docPNChart = document.getElementById("PNChart");
-      var pnChart = new Chart(docPNChart, {
-        type: "doughnut",
-        data: {
-          labels: ["긍정", "부정"],
-          datasets: [{
-            label: "# of Votes",
-            data: [this.positiveCount, (this.commentsCount - this.positiveCount)],
-            backgroundColor: [
-              "#01A9DB",
-              "#FE2E64"
-            ]
-          }]
-        },
-        options: {
-          maintainAspectRatio: false
-        }
-      });
-
-      var docTimeChart = document.getElementById("TimeChart").getContext("2d");
-      var TimeChart = new Chart(docTimeChart, {
-        type: "line",
-        data: {
-          labels: ["0am", "1am", "2am", "3am", "4am", "5am", "6am", "7am", "8am", "9am", "10am", "11am", "12pm", "1pm", "2pm", "3pm", "4pm", "5pm", "6pm", "7pm", "8pm", "9pm", "10pm", "11pm"],
-          datasets: [{
-            label: "시간대별 댓글 작성 추이",
-            data: this.commentTime,
-            borderColor: "#FA5882",
-            backgroundColor: "#00000000",
-            type: "line",
-            pointRadius: 2,
-            fill: false,
-            lineTension: 0,
-            borderWidth: 3,
-            newsWords: [],
-            commentsWords: []
-          }]
-        },
-      });
-    }, 800);
+    this.drawGraph();
   },
 
   computed: {
     viewDetail() {
+      let changeNews = false;
+      if(this.$store.state.oneNewsInfo["news_title"] != this.detailTitle) {
+        changeNews = true;
+      }
       this.detailTitle = this.$store.state.oneNewsInfo["news_title"];
       this.detailContext = this.$store.state.oneNewsInfo["news_context"];
       this.detailDate = this.$store.state.oneNewsInfo["news_date"];
       this.detailNum = this.$store.state.oneNewsInfo["news_num"];
       this.detailTime = this.$store.state.oneNewsInfo["news_time"]
-      this.getComments(1);
-      this.getCommentsInfo();
-      this.getCommentsTime();
+      if(changeNews == true) {
+        this.getComments(1);
+        this.getCommentsInfo();
+        this.getCommentsTime();
+        this.getNewsclouds();
+        this.getCommentsclouds();
+        this.drawGraph();
+      }
       return true;
     }
   },
 
   methods: {
+    drawGraph() {
+      setTimeout(() => {
+        var docPNChart = document.getElementById("PNChart");
+        var pnChart = new Chart(docPNChart, {
+          type: "doughnut",
+          data: {
+            labels: ["긍정", "부정"],
+            datasets: [{
+              label: "# of Votes",
+              data: [this.positiveCount, (this.commentsCount - this.positiveCount)],
+              backgroundColor: [
+                "#01A9DB",
+                "#FE2E64"
+              ]
+            }]
+          },
+          options: {
+            maintainAspectRatio: false
+          }
+        });
+
+        var docTimeChart = document.getElementById("TimeChart").getContext("2d");
+        var TimeChart = new Chart(docTimeChart, {
+          type: "line",
+          data: {
+            labels: ["0am", "1am", "2am", "3am", "4am", "5am", "6am", "7am", "8am", "9am", "10am", "11am", "12pm", "1pm", "2pm", "3pm", "4pm", "5pm", "6pm", "7pm", "8pm", "9pm", "10pm", "11pm"],
+            datasets: [{
+              label: "시간대별 댓글 작성 추이",
+              data: this.commentTime,
+              borderColor: "#FA5882",
+              backgroundColor: "#00000000",
+              type: "line",
+              pointRadius: 2,
+              fill: false,
+              lineTension: 0,
+              borderWidth: 3,
+              newsWords: [],
+              commentsWords: []
+            }]
+          },
+        });
+      }, 800);
+    },
     // Get Comment
     getComments(page) {
       let formData = new FormData();
