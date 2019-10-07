@@ -47,6 +47,20 @@ def get_head_news():
     return jsonify(result)
 
 
+# Get One news
+@app.route("/api/get/one_news", methods=["POST"])
+def get_one_news():
+    cursor = conn.db().cursor()
+
+    news_num = int(request.form.get("news_num"))
+
+    sql = "select * from news where news_num = %s"
+    cursor.execute(sql, news_num)
+    result = cursor.fetchall()
+
+    return jsonify(result)
+
+
 # Get news
 @app.route("/api/get/news", methods=["POST"])
 def get_news():
@@ -100,7 +114,6 @@ def get_search_news():
 # Get search_news count
 @app.route("/api/get/search_count", methods=["POST"])
 def get_search_news_count():
-
     category = request.form.get("searchCategory")
     keyword = request.form.get("searchKey")
 
@@ -444,7 +457,7 @@ def chat_search():
     else:
         # Get tags from table
         news_num = result_news["news_num"]
-        sql = "select n.news_title, nt.newstag_name from news n, newstag nt where n.news_num = %s limit 5"
+        sql = "select n.news_num, n.news_title, nt.newstag_name from news n, newstag nt where n.news_num = %s limit 5"
         cursor.execute(sql, news_num)
         result = cursor.fetchall()
 

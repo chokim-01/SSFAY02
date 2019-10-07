@@ -21,11 +21,10 @@
     </v-layout>
   </v-flex>
 
-
   <!-- Comments Chart -->
   <v-flex class="positionCenter" xs12 sm8 mb-5 >
-    <hr>
-    <h1 id="textCenter">데이터 분석</h1>
+    <hr class="dottedLine">
+    <h1 id="textCenter" >데이터 분석</h1>
     <!-- news cloud -->
     <wordcloud :data="newsWords" nameKey="newstagname" valueKey="newstagcount" showTooltip="true" :rotate="rotateValue"></wordcloud>
 
@@ -46,7 +45,7 @@
 
   <!--Comments Title  -->
   <v-flex class="positionCenter" xs12 sm8 mb-5>
-    <hr>
+    <hr class="dottedLine">
     <h1  id="textCenter">댓글 분석</h1>
     <!-- comments cloud -->
     <wordcloud :data="commentsWords" nameKey="commentstagname" valueKey="commentstagcount" showTooltip="true" :rotate="rotateValue"></wordcloud>
@@ -107,19 +106,18 @@
           <v-layout class="mh50" row wrap>
             <v-flex class="newsCommentRow" xs12 sm2><b>{{ timeChang(comment.comment_time) }}</b></v-flex>
             <v-flex class="newsCommentRow" v-text="comment.comment_context" xs10 sm9></v-flex>
-            <v-flex xs2 sm1 v-if="comment.label_news == '0'">
+            <v-flex v-if="comment.label_news == '0'" xs2 sm1>
               <v-chip id="newsThumbs" text-color="red" label>
                 <v-icon right>fas fa-thumbs-down</v-icon>
               </v-chip>
             </v-flex>
-            <v-flex xs2 sm1 v-else>
+            <v-flex v-else xs2 sm1>
               <v-chip id="newsThumbs" text-color="blue" label>
                 <v-icon right>fas fa-thumbs-up</v-icon>
               </v-chip>
             </v-flex>
           </v-layout>
         </template>
-
       </v-list>
 
       <!-- paging button -->
@@ -127,12 +125,10 @@
         <v-flex class="text-xs-center" xs12 sm 12>
           <div>
             <div class="pageButton_text" v-if="thisPage != 1" @click="getComments(1)">처음</div>
-
-            <div class="pageButton_text" v-for="i in pageList">
-              <div class="text-xs-center thisPageClass pageButton" @click="getComments(i)" v-if="i === thisPage">{{i}}</div>
-              <div class="pageButton" @click="getComments(i)" v-else>{{i}}</div>
+            <div class="pageButton_text" v-for="index in pageList">
+              <div class="text-xs-center thisPageClass pageButton" @click="getComments(index)" v-if="index === thisPage">{{index}}</div>
+              <div class="pageButton" @click="getComments(index)" v-else>{{index}}</div>
             </div>
-
             <div class="pageButton_text" v-model="finalPage" @click="getComments(finalPage)">마지막</div>
           </div>
         </v-flex>
@@ -312,7 +308,6 @@ export default {
       formData.append("news_num", this.detailNum);
       Server(this.$store.state.SERVER_URL).post("/api/get/newstags", formData)
         .then(res => {
-          console.log(res.data);
           this.newstags = res.data;
         })
     },
@@ -387,6 +382,11 @@ export default {
 <style scoped>
 @import url("https://fonts.googleapis.com/css?family=Song+Myung&display=swap");
 @import url("https://fonts.googleapis.com/css?family=Noto+Serif+KR&display=swap");
+
+.dottedLine {
+  border: dashed 2px #D8D8D8;
+  margin-bottom: 30px;
+}
 
 .positionCenter {
   margin: 0 auto;
