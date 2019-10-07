@@ -188,6 +188,7 @@ export default {
     this.getCommentsTime();
     this.getNewsclouds();
     this.getCommentsclouds();
+    this.detailContext = this.detailContext.split('\n').join('<br />');
 
     // Get Chart
     setTimeout(() => {
