@@ -1,5 +1,5 @@
-<template>
-<v-layout row wrap>
+﻿<template>
+<v-layout v-if="viewDetail" row wrap>
   <v-flex class="positionCenter" xs12 sm8 mb-2>
     <v-layout row wrap pb-4>
       <v-flex id="newspaperTitle" xs12>
@@ -8,35 +8,48 @@
 
       <!-- Get Tags -->
       <v-flex class="text-xs-center" xs12 mb-4>
-        <template v-for="tag in tags">
+        <template v-for="newstag in newstags">
           <v-chip color="red" outline>
-            {{tag.tag_name}}
+            #{{newstag.newstag_name}}
           </v-chip>
         </template>
       </v-flex>
 
-      <v-flex class="text-xs-right" xs12 px-4>{{dateFormmat}}</v-flex>
-      <v-flex id="newspaperContent" xs12 pa-3>
-        {{ detailContext }}
+      <v-flex class="text-xs-right" xs12 px-4>{{detailTime}}</v-flex>
+      <v-flex id="newspaperContent" v-html="detailContext" xs12 pa-3>
       </v-flex>
     </v-layout>
   </v-flex>
 
   <!-- Comments Chart -->
-  <v-flex id="newspaperGraph" xs12 mb-5 pa-3>
+  <v-flex class="positionCenter" xs12 sm8 mb-5 >
+    <hr class="dottedLine">
+    <h1 id="textCenter" >데이터 분석</h1>
+    <!-- news cloud -->
+    <wordcloud :data="newsWords" nameKey="newstagname" valueKey="newstagcount" :rotate="rotateValue"></wordcloud>
+
     <v-layout row wrap>
       <v-flex xs12 sm1 />
-      <v-flex xs12 sm5>
+      <v-flex xs12 sm4>
+        <h2 class="chartTitle">댓글 긍/부정</h2>
         <canvas id="PNChart" width="300" height="300" />
       </v-flex>
-      <v-flex xs12 sm4 mt-5>
-        <canvas id="TimeChart" width="300" height="300" />
+      <v-flex xs12 sm2 />
+      <v-flex xs12 sm4 >
+        <h2 class="chartTitle" >시간대별 댓글 작성 추이</h2>
+        <canvas id="TimeChart" width="300" height="350" />
+        <h3 class="chartTitle" >뉴스 작성 시간 : {{detailTime}}</h3>
       </v-flex>
     </v-layout>
   </v-flex>
 
   <!--Comments Title  -->
   <v-flex class="positionCenter" xs12 sm8 mb-5>
+    <hr class="dottedLine">
+    <h1  id="textCenter">댓글 분석</h1>
+    <!-- comments cloud -->
+    <wordcloud :data="commentsWords" nameKey="commentstagname" valueKey="commentstagcount" :rotate="rotateValue"></wordcloud>
+
     <v-card id="newsComment" flat>
       <v-layout class="mh50" row wrap>
         <v-flex xs12 sm5>
@@ -56,17 +69,35 @@
         <template v-for="comment in comments" class="cmtRow" v-if="showLocal">
           <v-layout class="mh50" row wrap>
             <v-flex class="newsCommentRow" xs12 sm2><b>{{ timeChang(comment.comment_time) }}</b></v-flex>
-            <v-flex :class="[ comment.label_local =='1' ? 'newsCommentRow isLocalComment' : 'newsCommentRow']" v-text="comment.comment_context" xs10 sm9></v-flex>
+            <v-flex :class="[ comment.label_local =='1' ? 'newsCommentRow isLocalComment' : 'newsCommentRow']" v-text="comment.comment_context" xs8 sm8></v-flex>
+
+            <!-- 댓글 긍/부정 -->
             <v-flex v-if="comment.label_news == '0'" xs2 sm1>
               <v-chip id="newsThumbs" text-color="red" label>
-                <v-icon right>fas fa-thumbs-down</v-icon>
+                <v-icon right @click="editCommentLabelNews(comment)">fas fa-thumbs-down</v-icon>
               </v-chip>
             </v-flex>
-            <v-flex xs2 sm1 v-else>
+
+            <v-flex v-else xs2 sm1>
               <v-chip id="newsThumbs" text-color="blue" label>
-                <v-icon right>fas fa-thumbs-up</v-icon>
+                <v-icon right @click="editCommentLabelNews(comment)">fas fa-thumbs-up</v-icon>
               </v-chip>
             </v-flex>
+
+
+            <!-- 지역감정 -->
+            <v-flex xs2 sm1 v-if="comment.label_local == '0'">
+              <v-chip id="newsThumbs" text-color="blue" label>
+                <v-icon right @click="editCommentLabelLocal(comment)">far fa-smile</v-icon>
+              </v-chip>
+            </v-flex>
+
+            <v-flex v-else xs2 sm1>
+              <v-chip id="newsThumbs" text-color="red" label>
+                <v-icon right @click="editCommentLabelLocal(comment)">far fa-angry</v-icon>
+              </v-chip>
+            </v-flex>
+
           </v-layout>
         </template>
 
@@ -75,20 +106,18 @@
           <v-layout class="mh50" row wrap>
             <v-flex class="newsCommentRow" xs12 sm2><b>{{ timeChang(comment.comment_time) }}</b></v-flex>
             <v-flex class="newsCommentRow" v-text="comment.comment_context" xs10 sm9></v-flex>
-            <v-flex xs2 sm1 v-if="comment.label_news == '0'">
+            <v-flex v-if="comment.label_news == '0'" xs2 sm1>
               <v-chip id="newsThumbs" text-color="red" label>
                 <v-icon right>fas fa-thumbs-down</v-icon>
               </v-chip>
             </v-flex>
-            <v-flex xs2 sm1 v-else>
+            <v-flex v-else xs2 sm1>
               <v-chip id="newsThumbs" text-color="blue" label>
                 <v-icon right>fas fa-thumbs-up</v-icon>
               </v-chip>
             </v-flex>
           </v-layout>
         </template>
-
-
       </v-list>
 
       <!-- paging button -->
@@ -96,12 +125,10 @@
         <v-flex class="text-xs-center" xs12 sm 12>
           <div>
             <div class="pageButton_text" v-if="thisPage != 1" @click="getComments(1)">처음</div>
-
-            <div class="pageButton_text" v-for="i in pageList">
-              <div class="text-xs-center thisPageClass pageButton" @click="getComments(i)" v-if="i === thisPage">{{i}}</div>
-              <div class="pageButton" @click="getComments(i)" v-else>{{i}}</div>
+            <div class="pageButton_text" v-for="index in pageList">
+              <div class="text-xs-center thisPageClass pageButton" @click="getComments(index)" v-if="index === thisPage">{{index}}</div>
+              <div class="pageButton" @click="getComments(index)" v-else>{{index}}</div>
             </div>
-
             <div class="pageButton_text" v-model="finalPage" @click="getComments(finalPage)">마지막</div>
           </div>
         </v-flex>
@@ -113,23 +140,27 @@
 </template>
 
 <script>
+import wordcloud from 'vue-wordcloud'
 import Server from "../server.js"
 import {store} from "../store.js"
-
 import Chart from "chart.js";
+
 export default {
   name: "NewsDetail",
+  components: {
+    wordcloud
+  },
   data() {
     return {
-      detailTitle: this.$route.params.detailTitle,
-      detailContext: this.$route.params.detailContext,
-      detailDate: this.$route.params.detailDate,
-      detailNum: this.$route.params.detailNum,
+      detailTitle: this.$store.state.oneNewsInfo["news_title"],
+      detailContext: this.$store.state.oneNewsInfo["news_context"],
+      detailDate: this.$store.state.oneNewsInfo["news_date"],
+      detailNum: this.$store.state.oneNewsInfo["news_num"],
+      detailTime:  this.$store.state.oneNewsInfo["news_time"],
       myDoughnutChart: null,
       doughnutData: null,
       comments: [],
       pageList: [],
-      tags: [],
       thisPage: 1,
       finalPage: 0,
       commentsCount: 0,
@@ -138,67 +169,96 @@ export default {
       commentTime: [],
       showLocal: true,
       commentPage: 1,
+      rotateValue: {
+        from: 0,
+        to: 0,
+        numOfOrientation: 5
+      },
+      newstags: [],
+      newsWords: [],
+      commentsWords: []
     }
   },
   created() {
     this.getComments(1);
-    this.getCommentsTags();
+    this.getNewsTags();
   },
   mounted() {
     this.getCommentsInfo();
     this.getCommentsTime();
-    this.getCommentsTags();
-
-    // Get Chart
-    setTimeout(() => {
-      var docPNChart = document.getElementById("PNChart");
-      var pnChart = new Chart(docPNChart, {
-        type: "doughnut",
-        data: {
-          labels: ["긍정", "부정"],
-          datasets: [{
-            label: "# of Votes",
-            data: [this.positiveCount, (this.commentsCount - this.positiveCount)],
-            backgroundColor: [
-              "#01A9DB",
-              "#FE2E64"
-            ]
-          }]
-        },
-        options: {
-          maintainAspectRatio: false
-        }
-      });
-
-      var docTimeChart = document.getElementById("TimeChart").getContext("2d");
-      var TimeChart = new Chart(docTimeChart, {
-        type: "line",
-        data: {
-          labels: ["0am", "1am", "2am", "3am", "4am", "5am", "6am", "7am", "8am", "9am", "10am", "11am", "12pm", "1pm", "2pm", "3pm", "4pm", "5pm", "6pm", "7pm", "8pm", "9pm", "10pm", "11pm"],
-          datasets: [{
-            label: "시간대별 댓글 작성 추이",
-            data: this.commentTime,
-            borderColor: "#FA5882",
-            backgroundColor: "#00000000",
-            type: "line",
-            pointRadius: 0,
-            fill: false,
-            lineTension: 0,
-            borderWidth: 2
-          }]
-        },
-      });
-    }, 500);
+    this.getNewsclouds();
+    this.getCommentsclouds();
+    this.detailContext = this.detailContext.split('\n').join('<br />');
+    this.drawGraph();
   },
 
   computed: {
-    dateFormmat() {
-      var dDate = this.detailDate + "";
-      return dDate.substring(0, 4) + " - " + dDate.substring(4, 6) + " - " + dDate.substring(6, 8);
-    },
+    viewDetail() {
+      let changeNews = false;
+      if(this.$store.state.oneNewsInfo["news_title"] != this.detailTitle) {
+        changeNews = true;
+      }
+      this.detailTitle = this.$store.state.oneNewsInfo["news_title"];
+      this.detailContext = this.$store.state.oneNewsInfo["news_context"];
+      this.detailDate = this.$store.state.oneNewsInfo["news_date"];
+      this.detailNum = this.$store.state.oneNewsInfo["news_num"];
+      this.detailTime = this.$store.state.oneNewsInfo["news_time"]
+      if(changeNews == true) {
+        this.getComments(1);
+        this.getCommentsInfo();
+        this.getCommentsTime();
+        this.getNewsclouds();
+        this.getCommentsclouds();
+        this.drawGraph();
+      }
+      return true;
+    }
   },
 
   methods: {
+    drawGraph() {
+      setTimeout(() => {
+        var docPNChart = document.getElementById("PNChart");
+        var pnChart = new Chart(docPNChart, {
+          type: "doughnut",
+          data: {
+            labels: ["긍정", "부정"],
+            datasets: [{
+              label: "# of Votes",
+              data: [this.positiveCount, (this.commentsCount - this.positiveCount)],
+              backgroundColor: [
+                "#01A9DB",
+                "#FE2E64"
+              ]
+            }]
+          },
+          options: {
+            maintainAspectRatio: false
+          }
+        });
+
+        var docTimeChart = document.getElementById("TimeChart").getContext("2d");
+        var TimeChart = new Chart(docTimeChart, {
+          type: "line",
+          data: {
+            labels: ["0am", "1am", "2am", "3am", "4am", "5am", "6am", "7am", "8am", "9am", "10am", "11am", "12pm", "1pm", "2pm", "3pm", "4pm", "5pm", "6pm", "7pm", "8pm", "9pm", "10pm", "11pm"],
+            datasets: [{
+              label: "시간대별 댓글 작성 추이",
+              data: this.commentTime,
+              borderColor: "#FA5882",
+              backgroundColor: "#00000000",
+              type: "line",
+              pointRadius: 2,
+              fill: false,
+              lineTension: 0,
+              borderWidth: 3,
+              newsWords: [],
+              commentsWords: []
+            }]
+          },
+        });
+      }, 800);
+    },
     // Get Comment
     getComments(page) {
       let formData = new FormData();
@@ -254,12 +314,66 @@ export default {
     },
 
     // Get Tags
-    getCommentsTags() {
+    getNewsTags() {
       let formData = new FormData();
       formData.append("news_num", this.detailNum);
-      Server(this.$store.state.SERVER_URL).post("/api/get/tags", formData)
+      Server(this.$store.state.SERVER_URL).post("/api/get/newstags", formData)
         .then(res => {
-          this.tags = res.data;
+          this.newstags = res.data;
+        })
+    },
+
+    // Edit Comment Logistic
+    editCommentLabelNews(comment) {
+      var self = this;
+      var form = new FormData();
+      form.append("num", comment.comment_num);
+      form.append("label_news", comment.label_news);
+
+      Server(this.$store.state.SERVER_URL).post("/api/edit/label_news", form)
+        .then(res => {
+          if (comment.label_news == 0) {
+            comment.label_news = 1;
+          } else {
+            comment.label_news = 0;
+          }
+        });
+    },
+
+    // Edit Comment Local
+    editCommentLabelLocal(comment) {
+      var self = this;
+      var form = new FormData();
+      form.append("num", comment.comment_num);
+      form.append("label_local", comment.label_local);
+
+      Server(this.$store.state.SERVER_URL).post("/api/edit/label_local", form)
+        .then(res => {
+          if (comment.label_local == 0) {
+            comment.label_local = 1;
+          } else {
+            comment.label_local = 0;
+          }
+        });
+    },
+
+    // Get news cloud
+    getNewsclouds() {
+      let formData = new FormData();
+      formData.append("news_num", this.detailNum);
+      Server(this.$store.state.SERVER_URL).post("api/get/news_cloud", formData)
+        .then(res => {
+          this.newsWords = res.data
+        })
+    },
+
+    // Get comments cloud
+    getCommentsclouds() {
+      let formData = new FormData();
+      formData.append("news_num", this.detailNum);
+      Server(this.$store.state.SERVER_URL).post("api/get/comments_cloud", formData)
+        .then(res => {
+          this.commentsWords = res.data
         })
     },
 
@@ -280,8 +394,16 @@ export default {
 @import url("https://fonts.googleapis.com/css?family=Song+Myung&display=swap");
 @import url("https://fonts.googleapis.com/css?family=Noto+Serif+KR&display=swap");
 
+.dottedLine {
+  border: dashed 2px #D8D8D8;
+  margin-bottom: 30px;
+}
 
 .positionCenter {
+  margin: 0 auto;
+}
+
+.divide{
   margin: 0 auto;
 }
 
@@ -310,21 +432,26 @@ export default {
   font-family: "Noto Serif KR", serif;
   overflow-y: scroll;
   height: 520px;
+  font-size: 18px;
 }
 
-#newspaperGraph {
-  overflow: hidden;
+#textCenter {
   text-align: center;
 }
 
 #PNChart {
   margin: 0 auto;
-  margin-top: 30px;
 }
 
 #PNChart,
 #TimeChart {
   max-height: 300px;
+}
+
+.chartTitle{
+  text-align: center;
+  margin-top: 30px;
+  margin-bottom: 15px;
 }
 
 ::-webkit-scrollbar {
@@ -523,7 +650,6 @@ export default {
   float: right;
 }
 
-
 @media (max-width: 600px) {
   #newspaperTitle {
     font-size: 35px;
@@ -532,12 +658,5 @@ export default {
   #newsComment .v-list__tile {
     padding: 0px 0px !important;
   }
-}
-
-@media (min-width: 600px) {
-  #PNChart {
-    margin-left: 8%;
-  }
-
 }
 </style>
