@@ -25,10 +25,11 @@ with open('../Model/word_indices.clf', 'rb') as models:
 
 # get news contents, comments
 def get_news(news_link_list):
-    print("Get news...")
     news_save = []
     comment_save = []
     news_cnt = 0
+
+    emoji = re.compile('[\U00010000-\U0010ffff]', flags=re.UNICODE)
 
     for news_link in range(len(news_link_list)):
         news_item = []
@@ -46,6 +47,7 @@ def get_news(news_link_list):
         news_html = req.text
         soup = bs4.BeautifulSoup(news_html, 'html.parser')
         title = soup.find('title').get_text()
+        news_time = soup.find(class_='t11').get_text()
 
         # Delete script tag
         for s in soup('script'):
@@ -63,6 +65,7 @@ def get_news(news_link_list):
         news_item.append(title)
         news_item.append(content)
         news_item.append(date)
+        news_item.append(news_time)
         news_save.append(news_item)
 
         # Control news page
@@ -116,21 +119,21 @@ def get_news(news_link_list):
 
                 # Save news comments
                 comment_item.append(aid)
-                comment_item.append(json_data["result"]["commentList"][idx]["contents"])
+                comment_context = json_data["result"]["commentList"][idx]["contents"]
+                comment_del_emoji = emoji.sub(r'', comment_context)
+                comment_item.append(comment_del_emoji)
                 reg_time = json_data["result"]["commentList"][idx]["regTime"]
                 reg_time = reg_time[0: -5]
                 comment_item.append(reg_time)
                 comment_save.append(comment_item)
             time.sleep(0.1)
         news_cnt += 1
-        print("news number : ", news_cnt)
+        print("[+] news number : ", news_cnt)
 
-    print("Get news complete")
     return news_save, comment_save
 
 
 def get_news_links(current_time):
-    print("time : ", current_time)
 
     # Parse link & root url
     root_url = 'https://news.naver.com'
@@ -168,7 +171,6 @@ def load_data(news_link_list):
     news_data, comments_data = get_news(news_link_list)
 
     comments_len = len(comments_data)
-    print("load data...")
 
     # Comment data formmatting
     for cmt_idx in range(comments_len):
@@ -176,7 +178,7 @@ def load_data(news_link_list):
         comments_data[cmt_idx].append(int(0))
         comments_data[cmt_idx][0] = int(comments_data[cmt_idx][0])
 
-    print("formatting comments complete")
+    print("[+] formatting comments complete")
 
     return news_data, comments_data
 
@@ -215,7 +217,7 @@ def load_mention(mention):
 def add_news(news_data):
     db = conn.db()
     cursor = db.cursor()
-    sql = "insert into news (news_num, news_title, news_context, news_date) values(%s, %s, %s, %s)"
+    sql = "insert into news (news_num, news_title, news_context, news_date, news_time) values(%s, %s, %s, %s, %s)"
     cursor.executemany(sql, news_data)
     db.commit()
 
@@ -249,13 +251,15 @@ def check_news_duplicate(data):
 
 
 # Make Tag with news_context
-def make_tag(news_data):
+def make_news_tag(news_data):
+    print("[+] make news tag start")
     news_len = len(news_data)
     okt = Okt()
     tag = []
 
     for news_idx in range(news_len):
         # get nouns from context
+
         context_nonce = okt.nouns(news_data[news_idx][2])
         word_count = Counter(context_nonce)
 
@@ -264,38 +268,84 @@ def make_tag(news_data):
 
         tag_cnt = 0
         for word in sorted_word_count:
-            if tag_cnt >= 5:
-                break
 
             word_list = []
             if len(word[0]) >= 2:
                 word_list.append(word[0])
+                word_list.append(word[1])
                 word_list.append(int(news_data[news_idx][0]))
                 tag.append(word_list)
                 tag_cnt += 1
+    print("[+] make news tag end")
+
+    return tag
+
+
+# Make Tag with news_context
+def make_comments_tag(comments_data):
+    okt = Okt()
+    tag = []
+
+    # Append end point ( for add )
+    comments_data.append([4, "End point"])
+
+    comments_len = len(comments_data)
+    word_count = Counter()
+    news_num = comments_data[0][0]
+
+    for comment_idx in range(comments_len):
+        # get nouns from context
+
+        if news_num != comments_data[comment_idx][0]:
+            # sort by numbers
+            sorted_word_count = sorted(word_count.items(), key=lambda x: (-x[1], x[0]))
+
+            tag_cnt = 0
+            for word in sorted_word_count:
+                if tag_cnt > 100:
+                    break
+                word_list = []
+                if len(word[0]) >= 2:
+                    word_list.append(word[0])
+                    word_list.append(word[1])
+                    word_list.append(news_num)
+                    tag.append(word_list)
+                    tag_cnt += 1
+
+            word_count = Counter()
+            news_num = comments_data[comment_idx][0]
+
+        else:
+            context_nonce = okt.nouns(comments_data[comment_idx][1])
+            word_count += Counter(context_nonce)
 
     return tag
 
 
 # Add news
-def add_news(data):
-    if len(data) != 0:
-        print("Insert DB...")
-        news_data, comments_data = data
+def add_to_db(news_data, comments_data, news_tag_data, comments_tag_data):
+    if len(news_data) != 0:
+        print("[+] Insert news...")
         add_news(news_data)
-        add_comment(comments_data)
-        tag = make_tag(news_data)
-        add_tag(tag)
+        print("[+] Insert Comments...")
+        add_comments(comments_data)
+        print("[+] Insert news tags...")
+        add_news_tag(news_tag_data)
+        print("[+] Insert comments tags...")
+        add_comments_tag(comments_tag_data)
 
     return
 
 
 # Add comment to DB
-def add_comment(comments_data):
+def add_comments(comments_data):
+    print("[+] Calc comments")
+    comments_data = comments_data[:-1]
+
     for comment in comments_data:
         label_news, label_local = load_mention(comment[1])
-        comment[2] = label_news
-        comment[3] = label_local
+        comment[3] = label_news
+        comment[4] = label_local
 
     db = conn.db()
     cursor = db.cursor()
@@ -308,11 +358,22 @@ def add_comment(comments_data):
     return
 
 
-# Add tag to DB
-def add_tag(tag_data):
+# Add news tag to DB
+def add_news_tag(tag_data):
     db = conn.db()
     cursor = db.cursor()
-    sql = "insert into tag (tag_name, news_num) values(%s, %s)"
+    sql = "insert into newstag (newstag_name, newstag_count, news_num) values(%s, %s, %s)"
+    cursor.executemany(sql, tag_data)
+    db.commit()
+
+    return
+
+
+# Add comments tag to DB
+def add_comments_tag(tag_data):
+    db = conn.db()
+    cursor = db.cursor()
+    sql = "insert into commentstag (commentstag_name, commentstag_count, news_num) values(%s, %s, %s)"
     cursor.executemany(sql, tag_data)
     db.commit()
 
@@ -324,9 +385,18 @@ def main():
     news_link_list = get_news_links(current_time - datetime.timedelta(days=1))
     data = load_data(news_link_list)
 
-    # Add yesterday news
-    add_news(check_news_duplicate(data))
-    print("complete")
+    print("[-] Del duplicate column")
+    # Deduplicate before news
+    news_data, comments_data = check_news_duplicate(data)
+
+    print("[+] Make tags....")
+    # Make tag news, comments
+    news_tag_data = make_news_tag(news_data)
+    comments_tag_data = make_comments_tag(comments_data)
+
+    # Insert into db , news, comments, tags
+    add_to_db(news_data, comments_data, news_tag_data, comments_tag_data)
+    print(idx, " day complete")
 
 
 if __name__ == '__main__':
