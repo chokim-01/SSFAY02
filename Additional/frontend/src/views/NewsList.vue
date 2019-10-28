@@ -81,16 +81,6 @@ export default {
     getNewsList(opt) {
       if(this.$store.state.searchCategory=='' || this.$store.state.searchCategory=='all'){
         // 전체 리스트 가져오기
-        var today = new Date();
-        var yesterday = today.getTime() - (1 * 24 * 60 * 60 * 1000); // 어제 기사 가져오기
-        today.setTime(yesterday);
-        var day = today.getDate();
-        var month = today.getMonth() + 1;
-        var year = today.getFullYear();
-        if(month < 10)
-          month = "0" + month;
-        if(day < 10)
-          day = "0" + day;
         if(opt == "page") {
           this.page = this.pageNum;
         }
@@ -101,7 +91,6 @@ export default {
         let formData = new FormData();
         formData.append("page", this.page);
 
-        formData.append("date", year+""+month+""+day);
         Server(this.$store.state.SERVER_URL).post("/api/get/news", formData)
           .then(res => {
             this.newsList = res.data;

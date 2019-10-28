@@ -98,4 +98,8 @@ export default {
 	border-width: 13px;
 	margin-top: -13px;
 }
+
+.tooltip {
+	display: none !important;
+}
 </style>
