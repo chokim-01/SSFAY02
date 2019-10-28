@@ -1,4 +1,4 @@
-<template>
+﻿<template>
 <v-layout row wrap>
   <v-flex class="positionCenter" xs12 sm8 >
     <div class="wrapper row2 ">
@@ -15,7 +15,7 @@
               <b class="introteam">현재는 멈춰있지만 머지않아 날개를 펼 팀 '맥 짚는 AI'입니다.</b>
               <br /><br />
               <h2>Functions</h2>
-              <p>⊙ 전 날의 정치이슈들을 노출</p>
+              <p>⊙ 최근 스포츠이슈들을 노출</p>
               <p>⊙ 뉴스 제목, 키워드, 날짜별 검색</p>
               <p>⊙ 사용자와 대화가 가능한 심심이</p>
               <p>⊙ 뉴스 검색 도우미</p>
@@ -26,7 +26,7 @@
               <p>⊙ 댓글에 대한 지역감정 포함 여부 표시/숨기기</p>
 
               <h2>Purpose</h2>
-              <p><b>사용자에게 최근 정치이슈를 알려주고 기사와 여론에 대한 분석을 제공한다.</b></p>
+              <p><b>사용자에게 최근 스포츠이슈를 알려주고 기사와 여론에 대한 분석을 제공한다.</b></p>
 
             </section>
             <br />
