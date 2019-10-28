@@ -37,11 +37,10 @@ def main():
 def get_head_news():
     cursor = conn.db().cursor()
 
-    date = int(request.form.get("date"))
     page = int(request.form.get("page"))
 
-    sql = "select * from news where news_date = %s order by news_num limit %s"
-    cursor.execute(sql, (date, page))
+    sql = "select * from news where news_date = (select news_date from news  group by news_date order by news_date desc limit 1) order by news_num desc limit %s"
+    cursor.execute(sql, page)
     result = cursor.fetchall()
 
     return jsonify(result)
@@ -66,12 +65,11 @@ def get_one_news():
 def get_news():
     cursor = conn.db().cursor()
 
-    date = int(request.form.get("date"))
     page = int(request.form.get("page"))
     limit = (page - 1) * LOAD_PAGE_COUNT
 
-    sql = "select * from news where news_date = %s order by news_num limit %s, %s"
-    cursor.execute(sql, (date, limit, LOAD_PAGE_COUNT))
+    sql = "select * from news where news_date = (select news_date from news  group by news_date order by news_date desc limit 1) order by news_num desc limit %s,%s"
+    cursor.execute(sql, (limit, LOAD_PAGE_COUNT))
     result = cursor.fetchall()
 
     return jsonify(result)
@@ -82,10 +80,8 @@ def get_news():
 def get_news_count():
     cursor = conn.db().cursor()
 
-    date = int(request.form.get("date"))
-
-    sql = "select count(*) from news where news_date = %s"
-    cursor.execute(sql, date)
+    sql = "select count(*) from news where news_date = (select news_date from news  group by news_date order by news_date desc limit 1) order by news_num desc"
+    cursor.execute(sql)
     result = cursor.fetchall()
 
     return jsonify(result)
@@ -380,57 +376,6 @@ def label_local_edit():
 ###################################################
 
 
-# Predict chat bot
-@app.route("/api/chat", methods=['POST'])
-def chat_test():
-    msg = request.form.get("msg")
-    answer = predict(msg)
-
-    return jsonify(answer)
-
-
-def predict(question):
-    tf.logging.set_verbosity(tf.logging.ERROR)
-    arg_length = len(question)
-
-    if arg_length < 2:
-        raise Exception("Don't call us. We'll call you")
-
-    # load dictionary
-    char2idx, idx2char, vocabulary_length = Preprocessing.load_vocabulary()
-
-    # make test data
-    input_data = str(question)
-
-    # encoding / decoding
-    predict_input_enc, predict_input_enc_length = Preprocessing.encode_processing([input_data], char2idx)
-    predict_output_dec, predict_output_dec_length = Preprocessing.decode_processing([""], char2idx)
-    predict_target_dec = Preprocessing.decode_target_processing([""], char2idx)
-
-    # Estimator
-    classifier = tf.estimator.Estimator(
-        model_fn=ml.Model,
-        model_dir=DEFINES.check_point_path,
-        params={
-            'embedding_size': DEFINES.embedding_size,
-            'model_hidden_size': DEFINES.model_hidden_size,
-            'ffn_hidden_size': DEFINES.ffn_hidden_size,
-            'attention_head_size': DEFINES.attention_head_size,
-            'learning_rate': DEFINES.learning_rate,
-            'vocabulary_length': vocabulary_length,
-            'layer_size': DEFINES.layer_size,
-            'max_sentence_length': DEFINES.max_sentence_length,
-            'xavier_initializer': DEFINES.xavier_initializer
-        })
-
-    predictions = classifier.predict(
-        input_fn=lambda: Preprocessing.eval_input_fn(predict_input_enc, predict_output_dec, predict_target_dec, 1))
-
-    answer, finished = Preprocessing.predict_next_sentence(predictions, idx2char)
-
-    return answer
-
-
 # Search chat
 @app.route("/api/get/chat", methods=['POST'])
 def chat_search():
@@ -446,21 +391,26 @@ def chat_search():
 
     cursor = conn.db().cursor()
 
-    sql = "select news_num from newstag where newstag_name like %s order by newstag_num desc limit 1"
-    cursor.execute(sql, msg_most_nouns)
-    result_news = cursor.fetchone()
+    sql = "select news_num from newstag where newstag_name like %s order by newstag_count desc limit 0,5"
 
+    cursor.execute(sql, msg_most_nouns)
+    result_news = cursor.fetchall()
+    
     # If tag not in table False
-    if result_news is None:
+    if len(result_news) < 1:
         return "False"
 
     else:
         # Get tags from table
-        news_num = result_news["news_num"]
-        sql = "select n.news_num, n.news_title, nt.newstag_name from news n, newstag nt where n.news_num = %s limit 5"
-        cursor.execute(sql, news_num)
-        result = cursor.fetchall()
-
+        news_list = [str(item['news_num']) for item in result_news]
+        result = [] 
+        
+        sql = "select n.news_num, news_title, newstag_name from news n inner join newstag nt on n.news_num = nt.news_num and n.news_num = %s limit 5"
+        for newsnum in news_list:
+            cursor.execute(sql, newsnum)
+            result.append(cursor.fetchall())
+        
+        print(result)
         return jsonify(result)
 
 

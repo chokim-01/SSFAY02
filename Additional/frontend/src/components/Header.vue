@@ -61,47 +61,8 @@
               <v-btn class="headerButton" to="/" flat> News </v-btn>
               <v-btn class="headerButton" to="AboutUs" flat> About Us </v-btn>
 
-              <!-- chatbot1 -->
-              <v-icon class="chatbotIcon" @click.stop="check_bot_view = !check_bot_view">far fa-comment-dots</v-icon>
-
               <!-- chat search -->
               <v-icon class="chatIcon" @click.stop="check_chatsearch_view = !check_chatsearch_view">far fa-comments</v-icon>
-
-              <v-menu class="chat" v-model="check_bot_view" :close-on-content-click="false" :nudge-width="200" offset-y>
-                <template v-slot:activator="{ on }"></template>
-
-                <v-card>
-                  <v-flex>
-                    <div class="chatHeader"> 심심이</div>
-                    <div class='chatbox'>
-                      <div class='botTalk'>
-                        <v-layout v-for="(responseItem, index) in chatResponeseItems" :key="responseItem+index" row wrap mt-5>
-                          <v-flex xs1>
-                            <div class="botCharacter">
-                              <img class="botImage" src="@/assets/chick.png">
-
-                            </div>
-                          </v-flex>
-                          <v-flex xs10>
-                            <p class='arrow_box_left' v-html="responseItem" />
-                          </v-flex>
-                        </v-layout>
-                      </div>
-                      <div class='loadIcon'>
-                        <div class="loader" v-if="load">
-                         <div class="circle"></div>
-                         <div class="circle"></div>
-                         <div class="circle"></div>
-                         <div class="circle"></div>
-                         <div class="circle"></div>
-                        </div>
-                      </div>
-                    </div>
-                  </v-flex>
-                  <textarea class="chattext" v-model="text" @keyup.13="enterBot" name="content" rows="2" placeholder="입력하세요."></textarea>
-                  <i class="send far fa-paper-plane" @click="enterBot"></i>
-                </v-card>
-              </v-menu>
 
               <v-menu class="chat" v-model="check_chatsearch_view" :close-on-content-click="false" :nudge-width="200" offset-y>
                 <template v-slot:activator="{ on }"></template>
@@ -110,24 +71,32 @@
                   <v-flex>
                     <div class="chatHeader">뉴스 검색 도우미</div>
                     <div class='chatbox'>
-                      <div class='chatSearch'  @click="chatToDetail()" >
+                      <div class='chatSearch'>
                         <v-layout v-for="(chatItem, index) in chatSearchItems" :key="chatItem+chatItem.newsNum" row wrap mt-5>
                           <v-flex xs1>
                             <div class="botCharacter">
                               <img class="botImage" src="@/assets/chick.png">
-
                             </div>
                           </v-flex>
+
                           <v-flex xs10>
                             <p class='arrow_box_left' v-html="chatItem.msg" />
-                            <p v-if="chatItem.newsNum!=null" class='arrow_box_left'>
-                              <span v-bind:value="chatItem.newsNum" class="clickTitle">
+                            <template v-if="chatItem.newsNum!=null" class='arrow_box_left'>
+                              <p class='arrow_box_left'>
+				<span v-bind:value="chatItem.newsNum" class="clickTitle" @click="chatToDetail()">
                                 {{chatItem.newsTitle}}
-                              </span>
-                              <br><br>
-                              <span v-html="chatItem.newsTags" />
-                            </p>
+                                </span>
+			        <br>
+                                <span v-html="chatItem.newsTags" />
+			      </p>
+			      <p v-if="chatItem.moreNews!=null" class='arrow_box_left'>
+                                <span class="clickTitle" @click="showChatResult()">
+				  {{chatItem.moreNews}} 
+                                </span>
+			      </p>
+                            </template>
                           </v-flex>
+
                         </v-layout>
                       </div>
                     </div>
@@ -173,13 +142,13 @@ export default {
         {label: "날짜", value: "date"}
       ],
       menu: false,
-      check_bot_view: false,
       check_chatsearch_view: false,
       text: "",
       textSearch: "",
       load: false,
       chatSearchItems: [],
-      chatResponeseItems: []
+      searchChatNum: 0,
+      searchChatResult: []
     }
   },
   mounted() {
@@ -223,18 +192,8 @@ export default {
     getNewsTitle() {
       const axios = require("axios");
       // 전체 리스트 가져오기
-        var today = new Date();
-        var yesterday = today.getTime() - (1 * 24 * 60 * 60 * 1000); // 어제 기사 가져오기
-        today.setTime(yesterday);
-        var day = today.getDate();
-        var month = today.getMonth() + 1;
-        var year = today.getFullYear();
-        if(month<10) month = "0" + month;
-        if(day<10) day = "0" + day;
-
       let formData = new FormData();
       formData.append("page", 10);
-      formData.append("date", year+""+month+""+day);
       Server(this.$store.state.SERVER_URL).post("/api/get/head_news", formData)
         .then(res => {
           this.newsTitle = [];
@@ -244,39 +203,50 @@ export default {
           this.newsAllInfo = res.data;
         })
     },
+    showChatResult(){
+      // Make tags
+      let searchNum = this.searchChatNum;
+      let catchFound = "이 기사를 찾으셨나요?";
+      let more = "찾으시는 기사가 아닌가요?";
+      let select = document.querySelector('.chatSearch');
 
-    enterBot(){
-      // user comment
-      this.load = true;
-      var select = document.querySelector('.botTalk');
+      if(searchNum >= this.searchChatResult.length) {
+	return;
+      }
+      let tags = "태그 : ";
+      
+      for(let data of this.searchChatResult[searchNum]){
+        tags += "<span style='border-radius: 20px; background-color:white; margin: 0px 5px; border: 1px dotted gray; padding: 0px 5px 0px 2px;'> #"+data["newstag_name"] + "</span>";
+      }
 
-      select.innerHTML += "<p class='arrow_box_right'>"+ this.text +"</p></br>";
-      document.querySelector('.chattext').value = '';
-
-      // form data
-      var form = new FormData();
-      form.append('msg', this.text);
-
-      // chatbot comment
-      Server(this.$store.state.SERVER_URL).post("/api/chat", form).then(res => {
-        this.chatResponeseItems.push(JSON.stringify(res.data));
-      }).catch(error => {
-
-      }).then(()=>{
-        this.load = false;
-        select.scrollTop = select.scrollHeight;
-      })
-
-      this.text = null;
+      if(searchNum == this.searchChatResult.length-1) {
+	let chatSearchResult = {
+          msg : catchFound, 
+          newsTitle : "제목 : " + JSON.stringify(this.searchChatResult[searchNum][0]["news_title"]),
+          newsNum: this.searchChatResult[searchNum][0]["news_num"],
+          newsTags : tags
+	};
+        this.chatSearchItems.push(chatSearchResult);
+      }
+      else {
+        let chatSearchResult = {
+          msg : catchFound,
+          newsTitle : "제목 : " + JSON.stringify(this.searchChatResult[searchNum][0]["news_title"]),
+          newsNum: this.searchChatResult[searchNum][0]["news_num"],
+          newsTags : tags,
+          moreNews : more
+        };
+        this.chatSearchItems.push(chatSearchResult);
+      }
+      this.searchChatNum += 1;
+      select.scrollTop = select.scrollHeight;
     },
 
     enterChat(){
-
       var arrowLeft = "<p class='arrow_box_left'>";
       var arrowRight = "<p class='arrow_box_right'>";
       var arrowEnd = "</p></br>";
       var notFound = "찾으시는 기사가 없어요 ㅠㅠ";
-      var catchFound = "이 기사를 찾으셨나요?";
       var select = document.querySelector('.chatSearch');
 
       select.innerHTML += arrowRight + this.textSearch + arrowEnd;
@@ -288,6 +258,8 @@ export default {
 
       // chatbot search
       Server(this.$store.state.SERVER_URL).post("/api/get/chat", form).then(res => {
+	this.searchChatNum = 0;
+	this.searchChatResult = res.data;
         if(res.data == "False"){
           let chatSearchOne = {
             msg : notFound,
@@ -300,20 +272,7 @@ export default {
 
           return;
         }
-
-        let tags = "태그 : "
-        for(let data of res.data){
-          tags += "<span style='border-radius: 20px; background-color:white; margin: 0px 5px; border: 1px dotted gray; padding: 0px 5px 0px 2px;'> #"+data["newstag_name"] + "</span>";
-        }
-
-        let chatSearchOne = {
-          msg : catchFound,
-          newsTitle : "제목 : " + JSON.stringify(res.data[0]["news_title"]),
-          newsNum: res.data[0]["news_num"],
-          newsTags : tags
-        };
-
-        this.chatSearchItems.push(chatSearchOne);
+	this.showChatResult();
 
       }).catch(error => {
 

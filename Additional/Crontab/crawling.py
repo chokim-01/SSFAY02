@@ -1,3 +1,4 @@
+from selenium import webdriver
 from collections import deque, Counter
 from scipy.sparse import lil_matrix
 from konlpy.tag import Okt
@@ -12,49 +13,56 @@ import bs4
 import re
 
 
+modelpath = '/home/ubuntu/Model/'
+
 # Load Model using pickle
-with open('../Model/news_model.clf', 'rb') as models:
+with open(modelpath+'news_model.clf', 'rb') as models:
     news_model = pickle.load(models)
 
-with open('../Model/local_model.clf', 'rb') as models:
+with open(modelpath+'local_model.clf', 'rb') as models:
     local_model = pickle.load(models)
 
-with open('../Model/word_indices.clf', 'rb') as models:
+with open(modelpath+'word_indices.clf', 'rb') as models:
     word_indices = pickle.load(models)
 
 
 # get news contents, comments
 def get_news(news_link_list):
+
+    print("[+] Get news start")
+
+    # data array
     news_save = []
     comment_save = []
-    news_cnt = 0
 
     emoji = re.compile('[\U00010000-\U0010ffff]', flags=re.UNICODE)
 
-    for news_link in range(len(news_link_list)):
+    for news_idx in range(len(news_link_list)):
         news_item = []
 
-        # Find oid, aid, date
-        oid_idx = news_link_list[news_link].find("oid=") + 4
-        aid_idx = news_link_list[news_link].find("&aid=")
-        date_idx = news_link_list[news_link].find("&date")
-        oid = news_link_list[news_link][oid_idx:aid_idx]
-        aid = news_link_list[news_link][aid_idx + 5:date_idx]
-        date = news_link_list[news_link][date_idx + 6:date_idx + 14]
+        print("[+] News_idx : ", (news_idx+1), "  Start")
+        # Find oid, aid
+        oid_idx = news_link_list[news_idx].find("oid=") + 4
+        aid_idx = news_link_list[news_idx].find("&aid=")
+        oid = news_link_list[news_idx][oid_idx:aid_idx]
+        aid = news_link_list[news_idx][aid_idx + 5:]
 
-        # Get news title, content
-        req = requests.get(news_link_list[news_link])
+        # Get news title, date, news_time
+        req = requests.get(news_link_list[news_idx])
         news_html = req.text
         soup = bs4.BeautifulSoup(news_html, 'html.parser')
         title = soup.find('title').get_text()
-        news_time = soup.find(class_='t11').get_text()
+        news_time = soup.find(class_='info').find('span').text
+        
+        if '기사입력' not in news_time:
+            continue
+        else:
+            news_time = news_time[5:]
+        
+        date = re.sub('[.]','',news_time)[:8]
 
-        # Delete script tag
-        for s in soup('script'):
-            s.extract()
-
-        # Delete html tag
-        content = (re.sub('<.+?>', '', str(soup.find(class_='_article_body_contents')), 0).strip())
+        # Parse content, Delete html tag
+        content = (re.sub('<.+?>', '', str(soup.find(class_='news_end')), 0).strip())
 
         # Replace . -> \n, ." -> ."\n
         content = content.replace('."', '."\n')
@@ -67,38 +75,39 @@ def get_news(news_link_list):
         news_item.append(date)
         news_item.append(news_time)
         news_save.append(news_item)
+        
+        # Control comments page
+        comments_page_count = 0
 
-        # Control news page
-        news_page_count = 0
-
+        # Get news comments
         while True:
-            news_page_count += 1
+            comments_page_count += 1
 
             # Send header type
             header = {
                 'Content-Type': 'application/json; charset=utf-8',
-                "referer": news_link_list[news_link]
+                "referer": news_link_list[news_idx]
             }
-
             # Send params type
-            param = {'ticket': 'news',
-                     'pool': 'cbox5',
-                     '_callback': 'jQuery1707138182064460843_1523512042464',
+            param = {'ticket': 'sports',
+                     'pool': 'cbox2',
+                     '_callback': 'jQuery21408666563295758771_1571805675151',
+                     'templateId': 'view',
                      'lang': 'ko',
                      'objectId': 'news' + oid + ',' + aid,
                      'pageSize': '20',
                      'indexSize': '10',
                      'listType': 'OBJECT',
                      'pageType': 'more',
-                     'page': news_page_count
+                     'page': comments_page_count,
                      }
 
             # Send url
-            jquery_url = "https://apis.naver.com/commentBox/cbox/web_neo_list_jsonp.json"
+            jquery_url = "https://apis.naver.com/commentBox/cbox/web_naver_list_jsonp.json"
 
             # Get request
             comment = requests.get(jquery_url, headers=header, params=param)
-
+            
             # Find comment, str to json
             temp = comment.text
             json_start = temp.find('(')
@@ -106,7 +115,7 @@ def get_news(news_link_list):
             string_data = temp[json_start + 1:json_end]
             json_data = json.loads(string_data)
             comment_len = len(json_data["result"]["commentList"])
-
+            
             if comment_len <= 1:
                 break
 
@@ -120,46 +129,55 @@ def get_news(news_link_list):
                 # Save news comments
                 comment_item.append(aid)
                 comment_context = json_data["result"]["commentList"][idx]["contents"]
+                
+                # Del comments emoji
                 comment_del_emoji = emoji.sub(r'', comment_context)
+                
                 comment_item.append(comment_del_emoji)
                 reg_time = json_data["result"]["commentList"][idx]["regTime"]
                 reg_time = reg_time[0: -5]
                 comment_item.append(reg_time)
                 comment_save.append(comment_item)
+            
             time.sleep(0.1)
-        news_cnt += 1
-        print("[+] news number : ", news_cnt)
-
+        
     return news_save, comment_save
 
 
 def get_news_links(current_time):
-
-    # Parse link & root url
-    root_url = 'https://news.naver.com'
-    url = 'https://news.naver.com/main/ranking/popularDay.nhn'
-
-    # 30 Days popular news
-    popular_news = deque()
-
+    
     # Set date
     current_date = current_time.strftime('%Y%m%d')
+    
+    # Parse link & root url
+    root_url = 'https://sports.news.naver.com'
+    url = 'https://sports.news.naver.com/ranking/index.nhn?date='+current_date
 
-    # Send params type
-    params = {
-        'rankingType': 'popular_day', 'sectionId': '100', 'date': current_date
-    }
+    # popular news
+    popular_news = deque()
+    
+    # Get request Use chromium
+    chrome_options = webdriver.ChromeOptions()
+    chrome_options.add_argument('--headless')
+    chrome_options.add_argument('--no-sandbox')
 
-    # Get request
-    req = requests.get(url, params=params)
+    driver = webdriver.Chrome(executable_path='/home/ubuntu/Crontab/chromedriver', chrome_options=chrome_options)
+    
+    # Execute driver
+    driver.implicitly_wait(3)
+    driver.get(url)
+    
+    html_info = driver.page_source
+   
+    # Exit driver
+    driver.quit()
 
     # Execute bs4, htmlparser, find link
-    soup = bs4.BeautifulSoup(req.content, 'html.parser')
-    content = soup.find_all('a', class_='nclicks(rnk.gov)')
-
+    soup = bs4.BeautifulSoup(html_info, 'html.parser')
+    content = [item for item in soup.find_all('a', class_='thmb') if len(item['class']) == 1]
+   
+    # Parse href
     for i in range(len(content)):
-        if i % 2:
-            continue
         popular_news.append(root_url + content[i].attrs['href'])
 
     return popular_news
@@ -177,8 +195,6 @@ def load_data(news_link_list):
         comments_data[cmt_idx].append(int(0))
         comments_data[cmt_idx].append(int(0))
         comments_data[cmt_idx][0] = int(comments_data[cmt_idx][0])
-
-    print("[+] formatting comments complete")
 
     return news_data, comments_data
 
@@ -252,7 +268,6 @@ def check_news_duplicate(data):
 
 # Make Tag with news_context
 def make_news_tag(news_data):
-    print("[+] make news tag start")
     news_len = len(news_data)
     okt = Okt()
     tag = []
@@ -276,7 +291,6 @@ def make_news_tag(news_data):
                 word_list.append(int(news_data[news_idx][0]))
                 tag.append(word_list)
                 tag_cnt += 1
-    print("[+] make news tag end")
 
     return tag
 
@@ -325,13 +339,9 @@ def make_comments_tag(comments_data):
 # Add news
 def add_to_db(news_data, comments_data, news_tag_data, comments_tag_data):
     if len(news_data) != 0:
-        print("[+] Insert news...")
         add_news(news_data)
-        print("[+] Insert Comments...")
         add_comments(comments_data)
-        print("[+] Insert news tags...")
         add_news_tag(news_tag_data)
-        print("[+] Insert comments tags...")
         add_comments_tag(comments_tag_data)
 
     return
@@ -339,7 +349,6 @@ def add_to_db(news_data, comments_data, news_tag_data, comments_tag_data):
 
 # Add comment to DB
 def add_comments(comments_data):
-    print("[+] Calc comments")
     comments_data = comments_data[:-1]
 
     for comment in comments_data:
@@ -381,23 +390,23 @@ def add_comments_tag(tag_data):
 
 
 def main():
-    current_time = datetime.datetime.now()
-    news_link_list = get_news_links(current_time - datetime.timedelta(days=1))
-    data = load_data(news_link_list)
+    for idx in range(1,2):
+        current_time = datetime.datetime.now()
+        news_link_list = get_news_links(current_time - datetime.timedelta(days=idx))
+        data = load_data(news_link_list)
+        
+        # Deduplicate before news
+        news_data, comments_data = check_news_duplicate(data)
+        
+        # Make tag news, comments
+        news_tag_data = make_news_tag(news_data)
+        comments_tag_data = make_comments_tag(comments_data)
 
-    print("[-] Del duplicate column")
-    # Deduplicate before news
-    news_data, comments_data = check_news_duplicate(data)
-
-    print("[+] Make tags....")
-    # Make tag news, comments
-    news_tag_data = make_news_tag(news_data)
-    comments_tag_data = make_comments_tag(comments_data)
-
-    # Insert into db , news, comments, tags
-    add_to_db(news_data, comments_data, news_tag_data, comments_tag_data)
-    print(idx, " day complete")
+        # Insert into db , news, comments, tags
+        add_to_db(news_data, comments_data, news_tag_data, comments_tag_data)
+        print(str(current_time), " day complete")
 
 
 if __name__ == '__main__':
     main()
+
