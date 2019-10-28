@@ -4,6 +4,7 @@ from konlpy.tag import Okt
 import conn.conn as conn
 import numpy as np
 import time
+import datetime
 import pymysql
 import pickle
 import nltk
@@ -29,7 +30,6 @@ def load_data():
     result = cursor.fetchall()
 
     print("[+] Load from DB")
-
     train_docs = [(tokenize_data(data_row["comment_context"]), data_row["label_news"], data_row["label_local"]) for data_row in result]
     print("[+] Tokenize")
 
@@ -74,26 +74,33 @@ def make_sparse_matrix():
 
 # Make model
 def make_model(x_train, y_train):
-
+    
     y_train_news = [row[0] for row in y_train]
     y_train_local = [row[1] for row in y_train]
 
     news_model = LogisticRegression().fit(x_train, y_train_news)
-    local_model = LogisticRegression().fit(x_train, y_train_local)
+    local_model = LogisticRegression().fit(x_train,y_train_local)
 
     pickle.dump(news_model, open("../Model/news_model_server.clf", "wb"))
-    pickle.dump(local_model, open("../Model/local_model_server.clf", "wb"))
+    pickle.dump(local_model, open("../Model/local_model_server.clf","wb"))
     pickle.dump(word_indices, open("../Model/word_indices_server.clf", "wb"))
-
+    
     print("[+] Make model")
 
 
 def main():
+    start_time = str(datetime.datetime.now())
+
     load_data()
     make_word_indices()
     x_train, y_train = make_sparse_matrix()
     make_model(x_train, y_train)
+    end_time = str(datetime.datetime.now())
 
+    file_time = open("time.log","w")
+    file_time.write(start_time+"\n")
+    file_time.write(end_time)
+    file_time.close()
 
 if __name__ == '__main__':
     main()
