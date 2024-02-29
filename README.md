@@ -1,7 +1,9 @@
 # 맥짚는 AI
 
+## Addtional
+![initial](https://github.com/chokim-01/SSFAY02/assets/37997972/b1e607cc-1bef-4862-b982-9994a6100707)
 
-## Seq2Seq result
+## Specification
 
 ![seq2seq](https://lab.ssafy.com/k3y6reak/ai-sub3/raw/master/Specification/Data/seq2seq_result.png)
 
@@ -28,7 +30,7 @@
 
 
 
-## Addendix Transform result
+### Addendix Transform result
 
 ![appendix_transform](https://lab.ssafy.com/k3y6reak/ai-sub3/raw/master/Specification/Data/appendix_transform.png)
 
