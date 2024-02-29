@@ -2,6 +2,8 @@
 
 ## Addtional
 ![initial](https://github.com/chokim-01/SSFAY02/assets/37997972/b1e607cc-1bef-4862-b982-9994a6100707)
+![initial](https://github.com/chokim-01/SSFAY02/assets/37997972/513a90a5-05b7-44a2-8e2c-d80ff9e00698)
+![initial](https://github.com/chokim-01/SSFAY02/assets/37997972/a7078a1b-bb8a-4975-9497-b6660ced378d)
 
 ## Specification
 
